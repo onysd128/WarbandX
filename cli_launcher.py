@@ -9,6 +9,9 @@ if os.name == 'nt':
     kernel32 = ctypes.windll.kernel32
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
+COLOR_RESET = '\033[0m'
+COLOR_ACCENT = '\033[38;5;2m'
+
 TRANSLATIONS = {
     "en": {
         "warband_not_found": "Warband not found",
@@ -477,18 +480,19 @@ def get_languages_list(install_directory, module_name):
 def select_from_menu(title, options, prefix="", lang="en"):
     selected_index = 0
     BOLD = '\033[1m'
-    RESET = '\033[0m'
+    global COLOR_RESET
+    global COLOR_ACCENT
     
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         if prefix:
             print(prefix)
             print()
-        print(f"{BOLD}{title}{RESET}\n")
+        print(f"{BOLD}{title}{COLOR_RESET}\n")
         
         for i, option in enumerate(options):
             if i == selected_index:
-                print(f"{BOLD}  ▶ {option} ◀{RESET}")
+                print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
             else:
                 print(f"    {option}")
         print()
@@ -725,8 +729,8 @@ def launch_game(install_directory, module_name, lang="en"):
 
 
 def print_warband_art():
-    COLOR_GOLD = '\033[38;5;220m'
-    COLOR_RESET = '\033[0m'
+    global COLOR_ACCENT
+    global COLOR_RESET
     
     art_lines = [
         " /$$      /$$                     /$$                                 /$$ /$$   /$$",
@@ -739,7 +743,7 @@ def print_warband_art():
         "|__/     \\__/ \\_______/|__/      |_______/  \\_______/|__/  |__/ \\_______/|__/  |__/"
     ]
     
-    colored_art = "\n".join([f"{COLOR_GOLD}{line}{COLOR_RESET}" for line in art_lines])
+    colored_art = "\n".join([f"{COLOR_ACCENT}{line}{COLOR_RESET}" for line in art_lines])
     return colored_art
 
 
