@@ -129,11 +129,14 @@ def get_languages_list(install_directory, module_name):
     return languages
 
 
-def select_from_menu(title, options):
+def select_from_menu(title, options, prefix=""):
     selected_index = 0
     
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
+        if prefix:
+            print(prefix)
+            print()
         print(f"{title}\n")
         
         for i, option in enumerate(options):
@@ -172,6 +175,22 @@ def select_module(modules):
     return modules[selected_index]
 
 
+def save_language_to_file(language):
+    try:
+        user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
+        warband_dir = os.path.join(user_profile, "Documents", "Mount&Blade Warband")
+        
+        os.makedirs(warband_dir, exist_ok=True)
+        
+        language_file = os.path.join(warband_dir, "language.txt")
+        with open(language_file, "w", encoding="utf-8") as f:
+            f.write(language)
+        return True
+    except Exception as e:
+        print(f"Error saving language to file: {e}")
+        return False
+
+
 def save_language_to_registry(language):
     try:
         reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
@@ -190,20 +209,50 @@ def save_language_to_registry(language):
         return False
 
 
-def load_language_from_registry():
+def load_language_from_file():
     try:
-        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-        key_path = r'Software\MountAndBladeWarbandKeys'
+        user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
+        language_file = os.path.join(user_profile, "Documents", "Mount&Blade Warband", "language.txt")
         
-        key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_READ)
-        language, _ = winreg.QueryValueEx(key, "language")
-        winreg.CloseKey(key)
-        return language
-    except (FileNotFoundError, OSError):
+        if os.path.exists(language_file):
+            with open(language_file, "r", encoding="utf-8") as f:
+                language = f.read().strip()
+                return language if language else "en"
         return "en"
     except Exception as e:
-        print(f"Error loading language from registry: {e}")
+        print(f"Error loading language from file: {e}")
         return "en"
+
+
+def save_module_to_file(module_name):
+    try:
+        user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
+        warband_dir = os.path.join(user_profile, "Documents", "Mount&Blade Warband")
+        
+        os.makedirs(warband_dir, exist_ok=True)
+        
+        module_file = os.path.join(warband_dir, "last_module.txt")
+        with open(module_file, "w", encoding="utf-8") as f:
+            f.write(module_name)
+        return True
+    except Exception as e:
+        print(f"Error saving module to file: {e}")
+        return False
+
+
+def load_module_from_file():
+    try:
+        user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
+        module_file = os.path.join(user_profile, "Documents", "Mount&Blade Warband", "last_module.txt")
+        
+        if os.path.exists(module_file):
+            with open(module_file, "r", encoding="utf-8") as f:
+                module = f.read().strip()
+                return module if module else None
+        return None
+    except Exception as e:
+        print(f"Error loading module from file: {e}")
+        return None
 
 
 def select_language(install_directory, module_name):
@@ -241,6 +290,7 @@ def select_language(install_directory, module_name):
     
     selected_language = languages[selected_index]
     save_language_to_registry(selected_language)
+    save_language_to_file(selected_language)
     return selected_language
 
 
@@ -266,21 +316,42 @@ def launch_game(module_name):
         return False
 
 
-def main_menu(install_directory, module_name, current_language="en"):
+def print_warband_art():
+    art = """ /$$      /$$                     /$$                                 /$$ /$$   /$$
+| $$  /$ | $$                    | $$                                | $$| $$  / $$
+| $$ /$$$| $$  /$$$$$$   /$$$$$$ | $$$$$$$   /$$$$$$  /$$$$$$$   /$$$$$$$|  $$/ $$/
+| $$/$$ $$ $$ |____  $$ /$$__  $$| $$__  $$ |____  $$| $$__  $$ /$$__  $$ \\  $$$$/ 
+| $$$$_  $$$$  /$$$$$$$| $$  \\__/| $$  \\ $$  /$$$$$$$| $$  \\ $$| $$  | $$  >$$  $$ 
+| $$$/ \\  $$$ /$$__  $$| $$      | $$  | $$ /$$__  $$| $$  | $$| $$  | $$ /$$/\\  $$
+| $$/   \\  $$|  $$$$$$$| $$      | $$$$$$$/|  $$$$$$$| $$  | $$|  $$$$$$$| $$  \\ $$
+|__/     \\__/ \\_______/|__/      |_______/  \\_______/|__/  |__/ \\_______/|__/  |__/"""
+    return art
+
+
+def main_menu(install_directory, modules, module_name, current_language="en"):
+    art = print_warband_art()
     while True:
-        options = ["Play", "Settings", "Exit"]
-        selected = select_from_menu(f"Module: {module_name} | Language: {current_language}", options)
+        options = ["Play", "Select Module", "Settings", "Exit"]
+        selected = select_from_menu(f"Module: {module_name} | Language: {current_language}", options, art)
         
         if selected == -1:
             continue
         
         if selected == 0:
-            launch_game(module_name)
+            if launch_game(module_name):
+                sys.exit(0)
         elif selected == 1:
+            new_module = select_module(modules)
+            if new_module and new_module != module_name:
+                module_name = new_module
+                save_module_to_file(module_name)
+                save_language_to_file("en")
+                current_language = "en"
+        elif selected == 2:
             new_language = select_language(install_directory, module_name)
             if new_language:
                 current_language = new_language
-        elif selected == 2:
+        elif selected == 3:
             return
 
 
@@ -294,10 +365,23 @@ if __name__ == "__main__":
 
     install_directory = get_install_directory(warband_path)
     modules = get_modules_list(install_directory)
-    selected_module = select_module(modules)
     
-    if selected_module:
-        saved_language = load_language_from_registry()
-        main_menu(install_directory, selected_module, saved_language)
+    if not modules:
+        print("No modules found")
+        exit()
+    
+    saved_module = load_module_from_file()
+    selected_module = saved_module if saved_module and saved_module in modules else None
+    
+    if not selected_module:
+        selected_module = select_module(modules)
+        if not selected_module:
+            print("\nNo module selected")
+            exit()
+        save_module_to_file(selected_module)
+        save_language_to_file("en")
+        saved_language = "en"
     else:
-        print("\nNo module selected")
+        saved_language = load_language_from_file()
+    
+    main_menu(install_directory, modules, selected_module, saved_language)
