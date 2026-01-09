@@ -4,11 +4,22 @@ import sys
 import msvcrt
 import subprocess
 
-def find_warband_path(path_to_exe=None):
+def normalize_path(path):
+    return os.path.normpath(os.path.normcase(path))
+
+
+def find_all_warband_paths(path_to_exe=None):
+    found_paths = []
+    normalized_paths = set()
+    
     if path_to_exe:
         warband_path = os.path.join(path_to_exe, "mb_warband.exe")
         if os.path.exists(warband_path):
-            return warband_path, True
+            normalized = normalize_path(warband_path)
+            if normalized not in normalized_paths:
+                normalized_paths.add(normalized)
+                found_paths.append(warband_path)
+    
     try:
         a_reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
         key_paths = [
@@ -24,8 +35,10 @@ def find_warband_path(path_to_exe=None):
                     if default_value and isinstance(default_value, str):
                         warband_path = os.path.join(default_value, "mb_warband.exe")
                         if os.path.exists(warband_path):
-                            winreg.CloseKey(a_key)
-                            return warband_path, True
+                            normalized = normalize_path(warband_path)
+                            if normalized not in normalized_paths:
+                                normalized_paths.add(normalized)
+                                found_paths.append(warband_path)
                 except (FileNotFoundError, OSError):
                     pass
                 try:
@@ -33,8 +46,10 @@ def find_warband_path(path_to_exe=None):
                     if install_path and isinstance(install_path, str):
                         warband_path = os.path.join(install_path, "mb_warband.exe")
                         if os.path.exists(warband_path):
-                            winreg.CloseKey(a_key)
-                            return warband_path, True
+                            normalized = normalize_path(warband_path)
+                            if normalized not in normalized_paths:
+                                normalized_paths.add(normalized)
+                                found_paths.append(warband_path)
                 except (FileNotFoundError, OSError):
                     pass
                 
@@ -47,10 +62,14 @@ def find_warband_path(path_to_exe=None):
                 
     except Exception as e:
         print(f"Error reading registry: {e}")
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     warband_path = os.path.join(current_dir, "mb_warband.exe")
     if os.path.exists(warband_path):
-        return warband_path, True
+        normalized = normalize_path(warband_path)
+        if normalized not in normalized_paths:
+            normalized_paths.add(normalized)
+            found_paths.append(warband_path)
     
     try:
         steam_reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
@@ -65,11 +84,15 @@ def find_warband_path(path_to_exe=None):
             
             for steam_warband_path in steam_paths:
                 if os.path.exists(steam_warband_path):
-                    return steam_warband_path, True
+                    normalized = normalize_path(steam_warband_path)
+                    if normalized not in normalized_paths:
+                        normalized_paths.add(normalized)
+                        found_paths.append(steam_warband_path)
         except (FileNotFoundError, OSError):
             pass
     except Exception:
         pass
+    
     program_files_paths = [
         os.path.join(os.environ.get("ProgramFiles", ""), "Mount&Blade Warband", "mb_warband.exe"),
         os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Mount&Blade Warband", "mb_warband.exe"),
@@ -80,9 +103,34 @@ def find_warband_path(path_to_exe=None):
     
     for program_path in program_files_paths:
         if program_path and os.path.exists(program_path):
-            return program_path, True
+            normalized = normalize_path(program_path)
+            if normalized not in normalized_paths:
+                normalized_paths.add(normalized)
+                found_paths.append(program_path)
     
-    return "", False
+    return found_paths
+
+
+def find_warband_path(path_to_exe=None):
+    found_paths = find_all_warband_paths(path_to_exe)
+    
+    if not found_paths:
+        return "", False
+    
+    if len(found_paths) == 1:
+        return found_paths[0], True
+    
+    path_display = []
+    for path in found_paths:
+        install_dir = os.path.dirname(path)
+        path_display.append(f"{install_dir}")
+    
+    selected_index = select_from_menu("Multiple Warband installations found. Select which one to use:", path_display)
+    
+    if selected_index == -1:
+        return "", False
+    
+    return found_paths[selected_index], True
 
 
 def get_install_directory(warband_exe_path):
