@@ -2,6 +2,7 @@ import winreg
 import os
 import sys
 import msvcrt
+import subprocess
 
 def find_warband_path(path_to_exe=None):
     if path_to_exe:
@@ -110,22 +111,36 @@ def get_modules_list(install_directory=None):
     return modules
 
 
-def select_module(modules):
-    if not modules:
-        print("No modules found")
-        return None
+def get_languages_list(install_directory, module_name):
+    languages = ["en"]
     
+    module_path = os.path.join(install_directory, "Modules", module_name)
+    languages_path = os.path.join(module_path, "languages")
+    
+    if os.path.exists(languages_path):
+        try:
+            for item in os.listdir(languages_path):
+                item_path = os.path.join(languages_path, item)
+                if os.path.isdir(item_path):
+                    languages.append(item)
+        except Exception as e:
+            print(f"Error reading languages directory: {e}")
+    
+    return languages
+
+
+def select_from_menu(title, options):
     selected_index = 0
     
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
-        print("Select module (use UP/DOWN arrows, ENTER to confirm):\n")
+        print(f"{title}\n")
         
-        for i, module in enumerate(modules):
+        for i, option in enumerate(options):
             if i == selected_index:
-                print(f"> {module} <")
+                print(f"> {option} <")
             else:
-                print(f"  {module}")
+                print(f"  {option}")
         
         key = msvcrt.getch()
         
@@ -134,15 +149,139 @@ def select_module(modules):
             if key2 == b'H':
                 selected_index = max(0, selected_index - 1)
             elif key2 == b'P':
-                selected_index = min(len(modules) - 1, selected_index + 1)
+                selected_index = min(len(options) - 1, selected_index + 1)
         elif key == b'\r' or key == b'\n':
-            return modules[selected_index]
+            return selected_index
         elif key == b'\x1b':
-            return None
+            return -1
         elif key == b'w' or key == b'W':
             selected_index = max(0, selected_index - 1)
         elif key == b's' or key == b'S':
-            selected_index = min(len(modules) - 1, selected_index + 1)
+            selected_index = min(len(options) - 1, selected_index + 1)
+
+
+def select_module(modules):
+    if not modules:
+        print("No modules found")
+        return None
+    
+    selected_index = select_from_menu("Select module (use UP/DOWN arrows, ENTER to confirm)", modules)
+    
+    if selected_index == -1:
+        return None
+    return modules[selected_index]
+
+
+def save_language_to_registry(language):
+    try:
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        key_path = r'Software\MountAndBladeWarbandKeys'
+        
+        try:
+            key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_WRITE)
+        except FileNotFoundError:
+            key = winreg.CreateKey(reg, key_path)
+        
+        winreg.SetValueEx(key, "language", 0, winreg.REG_SZ, language)
+        winreg.CloseKey(key)
+        return True
+    except Exception as e:
+        print(f"Error saving language to registry: {e}")
+        return False
+
+
+def load_language_from_registry():
+    try:
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        key_path = r'Software\MountAndBladeWarbandKeys'
+        
+        key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_READ)
+        language, _ = winreg.QueryValueEx(key, "language")
+        winreg.CloseKey(key)
+        return language
+    except (FileNotFoundError, OSError):
+        return "en"
+    except Exception as e:
+        print(f"Error loading language from registry: {e}")
+        return "en"
+
+
+def select_language(install_directory, module_name):
+    languages = get_languages_list(install_directory, module_name)
+    language_names = []
+    
+    for lang_code in languages:
+        if lang_code == "en":
+            language_names.append("English (en)")
+        elif lang_code == "cns":
+            language_names.append("Chinese Simplified (cns)")
+        elif lang_code == "cnt":
+            language_names.append("Chinese Traditional (cnt)")
+        elif lang_code == "cz":
+            language_names.append("Czech (cz)")
+        elif lang_code == "de":
+            language_names.append("German (de)")
+        elif lang_code == "es":
+            language_names.append("Spanish (es)")
+        elif lang_code == "fr":
+            language_names.append("French (fr)")
+        elif lang_code == "hu":
+            language_names.append("Hungarian (hu)")
+        elif lang_code == "pl":
+            language_names.append("Polish (pl)")
+        elif lang_code == "tr":
+            language_names.append("Turkish (tr)")
+        else:
+            language_names.append(f"{lang_code}")
+    
+    selected_index = select_from_menu("Select language (use UP/DOWN arrows, ENTER to confirm)", language_names)
+    
+    if selected_index == -1:
+        return None
+    
+    selected_language = languages[selected_index]
+    save_language_to_registry(selected_language)
+    return selected_language
+
+
+def launch_game(module_name):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    launcher_exe = os.path.join(script_dir, "Launcher.exe")
+    
+    if not os.path.exists(launcher_exe):
+        print(f"Error: Launcher.exe not found at {launcher_exe}")
+        input("Press ENTER to continue...")
+        return False
+    
+    try:
+        subprocess.run([launcher_exe, module_name], check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error launching game: {e}")
+        input("Press ENTER to continue...")
+        return False
+    except Exception as e:
+        print(f"Error: {e}")
+        input("Press ENTER to continue...")
+        return False
+
+
+def main_menu(install_directory, module_name, current_language="en"):
+    while True:
+        options = ["Play", "Settings", "Exit"]
+        selected = select_from_menu(f"Module: {module_name} | Language: {current_language}", options)
+        
+        if selected == -1:
+            continue
+        
+        if selected == 0:
+            launch_game(module_name)
+        elif selected == 1:
+            new_language = select_language(install_directory, module_name)
+            if new_language:
+                current_language = new_language
+        elif selected == 2:
+            return
 
 
 if __name__ == "__main__":
@@ -153,10 +292,12 @@ if __name__ == "__main__":
         print("Warband not found")
         exit()
 
-    modules = get_modules_list(get_install_directory(warband_path))
+    install_directory = get_install_directory(warband_path)
+    modules = get_modules_list(install_directory)
     selected_module = select_module(modules)
     
     if selected_module:
-        print(f"\nSelected module: {selected_module}")
+        saved_language = load_language_from_registry()
+        main_menu(install_directory, selected_module, saved_language)
     else:
         print("\nNo module selected")
