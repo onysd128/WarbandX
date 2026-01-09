@@ -75,6 +75,7 @@ def find_warband_path(path_to_exe=None):
         os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Mount&Blade Warband", "mb_warband.exe"),
         os.path.join(os.environ.get("ProgramFiles", ""), "Steam", "steamapps", "common", "MountBlade Warband", "mb_warband.exe"),
         os.path.join(os.environ.get("ProgramFiles(x86)", ""), "Steam", "steamapps", "common", "MountBlade Warband", "mb_warband.exe"),
+        r"C:\GOG Games\Mount and Blade - Warband\mb_warband.exe",
     ]
     
     for program_path in program_files_paths:
@@ -112,10 +113,12 @@ def get_modules_list(install_directory=None):
 
 
 def get_languages_list(install_directory, module_name):
-    languages = ["en"]
+    languages = []
     
     module_path = os.path.join(install_directory, "Modules", module_name)
     languages_path = os.path.join(module_path, "languages")
+    
+    has_en_folder = False
     
     if os.path.exists(languages_path):
         try:
@@ -123,8 +126,13 @@ def get_languages_list(install_directory, module_name):
                 item_path = os.path.join(languages_path, item)
                 if os.path.isdir(item_path):
                     languages.append(item)
+                    if item == "en":
+                        has_en_folder = True
         except Exception as e:
             print(f"Error reading languages directory: {e}")
+    
+    if not has_en_folder:
+        languages.insert(0, "en")
     
     return languages
 
@@ -294,7 +302,7 @@ def select_language(install_directory, module_name):
     return selected_language
 
 
-def launch_game(module_name):
+def launch_game(install_directory, module_name):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     launcher_exe = os.path.join(script_dir, "Launcher.exe")
     
@@ -304,7 +312,7 @@ def launch_game(module_name):
         return False
     
     try:
-        subprocess.run([launcher_exe, module_name], check=True)
+        subprocess.run([launcher_exe, module_name], cwd=install_directory, check=True)
         return True
     except subprocess.CalledProcessError as e:
         print(f"Error launching game: {e}")
@@ -338,7 +346,7 @@ def main_menu(install_directory, modules, module_name, current_language="en"):
             continue
         
         if selected == 0:
-            if launch_game(module_name):
+            if launch_game(install_directory, module_name):
                 sys.exit(0)
         elif selected == 1:
             new_module = select_module(modules)
@@ -361,6 +369,7 @@ if __name__ == "__main__":
         print(f"Found Warband: {warband_path}")
     else:
         print("Warband not found")
+        input("Press ENTER to continue...")
         exit()
 
     install_directory = get_install_directory(warband_path)
@@ -368,6 +377,7 @@ if __name__ == "__main__":
     
     if not modules:
         print("No modules found")
+        input("Press ENTER to continue...")
         exit()
     
     saved_module = load_module_from_file()
@@ -377,6 +387,7 @@ if __name__ == "__main__":
         selected_module = select_module(modules)
         if not selected_module:
             print("\nNo module selected")
+            input("Press ENTER to continue...")
             exit()
         save_module_to_file(selected_module)
         save_language_to_file("en")
