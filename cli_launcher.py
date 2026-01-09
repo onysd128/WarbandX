@@ -737,7 +737,7 @@ def settings_menu(install_directory, modules, module_name, current_language, lau
         selected = select_from_menu(t("settings", launcher_lang), options, art, lang=launcher_lang)
         
         if selected == -1:
-            return launcher_lang
+            return current_language, launcher_lang
         
         if selected == 0:
             new_language = select_language(install_directory, module_name, launcher_lang)
@@ -748,7 +748,7 @@ def settings_menu(install_directory, modules, module_name, current_language, lau
             if new_launcher_lang:
                 launcher_lang = new_launcher_lang
         elif selected == 2:
-            return launcher_lang
+            return current_language, launcher_lang
 
 
 def main_menu(install_directory, modules, module_name, current_language="en", launcher_lang="en"):
@@ -771,8 +771,9 @@ def main_menu(install_directory, modules, module_name, current_language="en", la
                 save_language_to_file("en")
                 current_language = "en"
         elif selected == 2:
-            new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
-            if new_launcher_lang and new_launcher_lang != launcher_lang:
+            new_language, new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
+            current_language = new_language
+            if new_launcher_lang != launcher_lang:
                 launcher_lang = new_launcher_lang
         elif selected == 3:
             return
