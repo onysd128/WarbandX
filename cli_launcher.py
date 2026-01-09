@@ -160,6 +160,15 @@ def get_modules_list(install_directory=None):
     return modules
 
 
+def check_language_in_root(install_directory, lang_code):
+    root_languages_path = os.path.join(install_directory, "Languages")
+    if not os.path.exists(root_languages_path):
+        return False
+    
+    lang_path = os.path.join(root_languages_path, lang_code)
+    return os.path.isdir(lang_path)
+
+
 def get_languages_list(install_directory, module_name):
     languages = []
     
@@ -354,6 +363,13 @@ def get_language_name(lang_code):
     return language_names.get(lang_code, lang_code.upper())
 
 
+def show_warning(message):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print(message)
+    print("\nPress ENTER to continue...")
+    msvcrt.getch()
+
+
 def select_language(install_directory, module_name):
     languages = get_languages_list(install_directory, module_name)
     language_names = []
@@ -368,6 +384,16 @@ def select_language(install_directory, module_name):
         return None
     
     selected_language = languages[selected_index]
+    
+    if not check_language_in_root(install_directory, selected_language):
+        lang_name = get_language_name(selected_language)
+        warning_message = f"""WARNING
+
+The selected language "{lang_name} ({selected_language})" is not available in the root Languages folder.
+
+Some interface elements may not be translated and will remain in English."""
+        show_warning(warning_message)
+    
     save_language_to_registry(selected_language)
     save_language_to_file(selected_language)
     return selected_language
