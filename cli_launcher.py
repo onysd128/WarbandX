@@ -516,10 +516,16 @@ def select_module(modules, lang="en"):
         print(t("no_modules_found", lang))
         return None
     
-    selected_index = select_from_menu(t("select_module", lang), modules, lang=lang)
+    art = print_warband_art()
+    options = modules + [t("back", lang)]
+    selected_index = select_from_menu(t("select_module", lang), options, prefix=art, lang=lang)
     
     if selected_index == -1:
         return None
+    
+    if selected_index == len(modules):
+        return None
+    
     return modules[selected_index]
 
 
