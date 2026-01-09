@@ -1,5 +1,7 @@
 import winreg
 import os
+import sys
+import msvcrt
 
 def find_warband_path(path_to_exe=None):
     if path_to_exe:
@@ -108,6 +110,41 @@ def get_modules_list(install_directory=None):
     return modules
 
 
+def select_module(modules):
+    if not modules:
+        print("No modules found")
+        return None
+    
+    selected_index = 0
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("Select module (use UP/DOWN arrows, ENTER to confirm):\n")
+        
+        for i, module in enumerate(modules):
+            if i == selected_index:
+                print(f"> {module} <")
+            else:
+                print(f"  {module}")
+        
+        key = msvcrt.getch()
+        
+        if key == b'\xe0' or key == b'\x00':
+            key2 = msvcrt.getch()
+            if key2 == b'H':
+                selected_index = max(0, selected_index - 1)
+            elif key2 == b'P':
+                selected_index = min(len(modules) - 1, selected_index + 1)
+        elif key == b'\r' or key == b'\n':
+            return modules[selected_index]
+        elif key == b'\x1b':
+            return None
+        elif key == b'w' or key == b'W':
+            selected_index = max(0, selected_index - 1)
+        elif key == b's' or key == b'S':
+            selected_index = min(len(modules) - 1, selected_index + 1)
+
+
 if __name__ == "__main__":
     warband_path, success = find_warband_path()
     if success:
@@ -117,3 +154,9 @@ if __name__ == "__main__":
         exit()
 
     modules = get_modules_list(get_install_directory(warband_path))
+    selected_module = select_module(modules)
+    
+    if selected_module:
+        print(f"\nSelected module: {selected_module}")
+    else:
+        print("\nNo module selected")
