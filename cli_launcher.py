@@ -3,6 +3,11 @@ import os
 import sys
 import msvcrt
 import subprocess
+import ctypes
+
+if os.name == 'nt':
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 TRANSLATIONS = {
     "en": {
@@ -471,19 +476,22 @@ def get_languages_list(install_directory, module_name):
 
 def select_from_menu(title, options, prefix="", lang="en"):
     selected_index = 0
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
     
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         if prefix:
             print(prefix)
             print()
-        print(f"{title}\n")
+        print(f"{BOLD}{title}{RESET}\n")
         
         for i, option in enumerate(options):
             if i == selected_index:
-                print(f"> {option} <")
+                print(f"{BOLD}  ▶ {option} ◀{RESET}")
             else:
-                print(f"  {option}")
+                print(f"    {option}")
+        print()
         
         key = msvcrt.getch()
         
