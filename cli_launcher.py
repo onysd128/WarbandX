@@ -4,6 +4,281 @@ import sys
 import msvcrt
 import subprocess
 
+TRANSLATIONS = {
+    "en": {
+        "warband_not_found": "Warband not found",
+        "no_modules_found": "No modules found",
+        "no_module_selected": "No module selected",
+        "select_module": "Select module (use UP/DOWN arrows, ENTER to confirm)",
+        "select_language": "Select language (use UP/DOWN arrows, ENTER to confirm)",
+        "select_launcher_language": "Select launcher language (use UP/DOWN arrows, ENTER to confirm)",
+        "multiple_installations": "Multiple Warband installations found. Select which one to use:",
+        "play": "Play",
+        "select_module": "Select Module",
+        "settings": "Settings",
+        "exit": "Exit",
+        "back": "Back",
+        "game_language": "Game Language",
+        "launcher_language": "Launcher Language",
+        "module": "Module",
+        "language": "Language",
+        "press_enter": "Press ENTER to continue...",
+        "error_launching": "Error launching game",
+        "error": "Error",
+        "warning": "WARNING",
+        "language_warning": "The selected language \"{selected_lang}\" is not available in the root Languages folder.\n\nSome interface elements may not be translated and will remain in English.",
+        "found_warband": "Found Warband",
+    },
+    "uk": {
+        "warband_not_found": "Warband не знайдено",
+        "no_modules_found": "Модулі не знайдено",
+        "no_module_selected": "Модуль не обрано",
+        "select_module": "Оберіть модуль (використовуйте стрілки ВГОРУ/ВНИЗ, ENTER для підтвердження)",
+        "select_language": "Оберіть мову (використовуйте стрілки ВГОРУ/ВНИЗ, ENTER для підтвердження)",
+        "select_launcher_language": "Оберіть мову лаунчера (використовуйте стрілки ВГОРУ/ВНИЗ, ENTER для підтвердження)",
+        "multiple_installations": "Знайдено кілька встановлень Warband. Оберіть яке використовувати:",
+        "play": "Грати",
+        "select_module": "Обрати модуль",
+        "settings": "Налаштування",
+        "exit": "Вихід",
+        "back": "Назад",
+        "game_language": "Мова гри",
+        "launcher_language": "Мова лаунчера",
+        "module": "Модуль",
+        "language": "Мова",
+        "press_enter": "Натисніть ENTER для продовження...",
+        "error_launching": "Помилка запуску гри",
+        "error": "Помилка",
+        "warning": "ПОПЕРЕДЖЕННЯ",
+        "language_warning": "Обрана мова \"{selected_lang}\" недоступна в кореневій папці Languages.\n\nДеякі елементи інтерфейсу можуть не бути перекладені і залишаться англійською.",
+        "found_warband": "Знайдено Warband",
+    },
+    "be": {
+        "warband_not_found": "Warband не знойдзена",
+        "no_modules_found": "Модулі не знойдзены",
+        "no_module_selected": "Модуль не абраны",
+        "select_module": "Абярыце модуль (выкарыстоўвайце стрэлкі УГОРУ/УНИЗ, ENTER для пацверджання)",
+        "select_language": "Абярыце мову (выкарыстоўвайце стрэлкі УГОРУ/УНИЗ, ENTER для пацверджання)",
+        "select_launcher_language": "Абярыце мову лаўнчара (выкарыстоўвайце стрэлкі УГОРУ/УНИЗ, ENTER для пацверджання)",
+        "multiple_installations": "Знойдзена некалькі ўстановак Warband. Абярыце якую выкарыстоўваць:",
+        "play": "Гуляць",
+        "select_module": "Абраць модуль",
+        "settings": "Налады",
+        "exit": "Выхад",
+        "back": "Назад",
+        "game_language": "Мова гульні",
+        "launcher_language": "Мова лаўнчара",
+        "module": "Модуль",
+        "language": "Мова",
+        "press_enter": "Націсніце ENTER для працягу...",
+        "error_launching": "Памылка запуску гульні",
+        "error": "Памылка",
+        "warning": "ПАПЯРЭДЖАННЕ",
+        "language_warning": "Абраная мова \"{selected_lang}\" недаступная ў каранёвай папцы Languages.\n\nНекаторыя элементы інтэрфейсу могуць не быць перакладзены і застануцца англійскай.",
+        "found_warband": "Знойдзена Warband",
+    },
+    "ro": {
+        "warband_not_found": "Warband nu a fost găsit",
+        "no_modules_found": "Nu s-au găsit module",
+        "no_module_selected": "Niciun modul selectat",
+        "select_module": "Selectați modulul (folosiți săgețile SUS/JOS, ENTER pentru confirmare)",
+        "select_language": "Selectați limba (folosiți săgețile SUS/JOS, ENTER pentru confirmare)",
+        "select_launcher_language": "Selectați limba launcher-ului (folosiți săgețile SUS/JOS, ENTER pentru confirmare)",
+        "multiple_installations": "Au fost găsite mai multe instalări Warband. Selectați care să fie folosită:",
+        "play": "Joacă",
+        "select_module": "Selectează Modul",
+        "settings": "Setări",
+        "exit": "Ieșire",
+        "back": "Înapoi",
+        "game_language": "Limba jocului",
+        "launcher_language": "Limba launcher-ului",
+        "module": "Modul",
+        "language": "Limbă",
+        "press_enter": "Apăsați ENTER pentru a continua...",
+        "error_launching": "Eroare la lansarea jocului",
+        "error": "Eroare",
+        "warning": "AVERTISMENT",
+        "language_warning": "Limba selectată \"{selected_lang}\" nu este disponibilă în folderul rădăcină Languages.\n\nUnele elemente ale interfeței pot să nu fie traduse și vor rămâne în engleză.",
+        "found_warband": "Warband găsit",
+    },
+    "pl": {
+        "warband_not_found": "Nie znaleziono Warband",
+        "no_modules_found": "Nie znaleziono modułów",
+        "no_module_selected": "Nie wybrano modułu",
+        "select_module": "Wybierz moduł (użyj strzałek GÓRA/DÓŁ, ENTER aby potwierdzić)",
+        "select_language": "Wybierz język (użyj strzałek GÓRA/DÓŁ, ENTER aby potwierdzić)",
+        "select_launcher_language": "Wybierz język launchera (użyj strzałek GÓRA/DÓŁ, ENTER aby potwierdzić)",
+        "multiple_installations": "Znaleziono wiele instalacji Warband. Wybierz którą użyć:",
+        "play": "Graj",
+        "select_module": "Wybierz Moduł",
+        "settings": "Ustawienia",
+        "exit": "Wyjście",
+        "back": "Wstecz",
+        "game_language": "Język gry",
+        "launcher_language": "Język launchera",
+        "module": "Moduł",
+        "language": "Język",
+        "press_enter": "Naciśnij ENTER aby kontynuować...",
+        "error_launching": "Błąd uruchamiania gry",
+        "error": "Błąd",
+        "warning": "OSTRZEŻENIE",
+        "language_warning": "Wybrany język \"{selected_lang}\" nie jest dostępny w głównym folderze Languages.\n\nNiektóre elementy interfejsu mogą nie być przetłumaczone i pozostaną w języku angielskim.",
+        "found_warband": "Znaleziono Warband",
+    },
+    "tr": {
+        "warband_not_found": "Warband bulunamadı",
+        "no_modules_found": "Modül bulunamadı",
+        "no_module_selected": "Modül seçilmedi",
+        "select_module": "Modül seçin (YUKARI/AŞAĞI ok tuşlarını kullanın, onaylamak için ENTER)",
+        "select_language": "Dil seçin (YUKARI/AŞAĞI ok tuşlarını kullanın, onaylamak için ENTER)",
+        "select_launcher_language": "Launcher dilini seçin (YUKARI/AŞAĞI ok tuşlarını kullanın, onaylamak için ENTER)",
+        "multiple_installations": "Birden fazla Warband kurulumu bulundu. Hangisini kullanacağınızı seçin:",
+        "play": "Oyna",
+        "select_module": "Modül Seç",
+        "settings": "Ayarlar",
+        "exit": "Çıkış",
+        "back": "Geri",
+        "game_language": "Oyun Dili",
+        "launcher_language": "Launcher Dili",
+        "module": "Modül",
+        "language": "Dil",
+        "press_enter": "Devam etmek için ENTER'a basın...",
+        "error_launching": "Oyun başlatma hatası",
+        "error": "Hata",
+        "warning": "UYARI",
+        "language_warning": "Seçilen dil \"{selected_lang}\" kök Languages klasöründe mevcut değil.\n\nBazı arayüz öğeleri çevrilmemiş olabilir ve İngilizce kalacaktır.",
+        "found_warband": "Warband bulundu",
+    },
+    "ja": {
+        "warband_not_found": "Warbandが見つかりません",
+        "no_modules_found": "モジュールが見つかりません",
+        "no_module_selected": "モジュールが選択されていません",
+        "select_module": "モジュールを選択してください（上下矢印キーを使用、ENTERで確認）",
+        "select_language": "言語を選択してください（上下矢印キーを使用、ENTERで確認）",
+        "select_launcher_language": "ランチャーの言語を選択してください（上下矢印キーを使用、ENTERで確認）",
+        "multiple_installations": "複数のWarbandインストールが見つかりました。使用するものを選択してください：",
+        "play": "プレイ",
+        "select_module": "モジュールを選択",
+        "settings": "設定",
+        "exit": "終了",
+        "back": "戻る",
+        "game_language": "ゲーム言語",
+        "launcher_language": "ランチャー言語",
+        "module": "モジュール",
+        "language": "言語",
+        "press_enter": "続行するにはENTERキーを押してください...",
+        "error_launching": "ゲームの起動エラー",
+        "error": "エラー",
+        "warning": "警告",
+        "language_warning": "選択された言語「{selected_lang}」はルートLanguagesフォルダーで利用できません。\n\n一部のインターフェース要素は翻訳されず、英語のままになる可能性があります。",
+        "found_warband": "Warbandが見つかりました",
+    },
+    "zh": {
+        "warband_not_found": "未找到Warband",
+        "no_modules_found": "未找到模块",
+        "no_module_selected": "未选择模块",
+        "select_module": "选择模块（使用上下箭头键，ENTER确认）",
+        "select_language": "选择语言（使用上下箭头键，ENTER确认）",
+        "select_launcher_language": "选择启动器语言（使用上下箭头键，ENTER确认）",
+        "multiple_installations": "找到多个Warband安装。选择要使用的：",
+        "play": "游戏",
+        "select_module": "选择模块",
+        "settings": "设置",
+        "exit": "退出",
+        "back": "返回",
+        "game_language": "游戏语言",
+        "launcher_language": "启动器语言",
+        "module": "模块",
+        "language": "语言",
+        "press_enter": "按ENTER继续...",
+        "error_launching": "启动游戏错误",
+        "error": "错误",
+        "warning": "警告",
+        "language_warning": "所选语言「{selected_lang}」在根Languages文件夹中不可用。\n\n某些界面元素可能未翻译，将保持英语。",
+        "found_warband": "找到Warband",
+    },
+    "ko": {
+        "warband_not_found": "Warband를 찾을 수 없습니다",
+        "no_modules_found": "모듈을 찾을 수 없습니다",
+        "no_module_selected": "모듈이 선택되지 않았습니다",
+        "select_module": "모듈을 선택하세요 (위/아래 화살표 사용, ENTER로 확인)",
+        "select_language": "언어를 선택하세요 (위/아래 화살표 사용, ENTER로 확인)",
+        "select_launcher_language": "런처 언어를 선택하세요 (위/아래 화살표 사용, ENTER로 확인)",
+        "multiple_installations": "여러 개의 Warband 설치를 찾았습니다. 사용할 것을 선택하세요:",
+        "play": "플레이",
+        "select_module": "모듈 선택",
+        "settings": "설정",
+        "exit": "종료",
+        "back": "뒤로",
+        "game_language": "게임 언어",
+        "launcher_language": "런처 언어",
+        "module": "모듈",
+        "language": "언어",
+        "press_enter": "계속하려면 ENTER를 누르세요...",
+        "error_launching": "게임 실행 오류",
+        "error": "오류",
+        "warning": "경고",
+        "language_warning": "선택한 언어 \"{selected_lang}\"는 루트 Languages 폴더에서 사용할 수 없습니다.\n\n일부 인터페이스 요소는 번역되지 않을 수 있으며 영어로 유지됩니다.",
+        "found_warband": "Warband를 찾았습니다",
+    },
+}
+
+LAUNCHER_LANGUAGES = ["en", "uk", "be", "ro", "pl", "tr", "ja", "zh", "ko"]
+
+def get_launcher_language_name(lang_code):
+    names = {
+        "en": "English",
+        "uk": "Українська",
+        "be": "Беларуская",
+        "ro": "Română",
+        "pl": "Polski",
+        "tr": "Türkçe",
+        "ja": "日本語",
+        "zh": "中文",
+        "ko": "한국어",
+    }
+    return names.get(lang_code, lang_code.upper())
+
+def t(key, lang="en", **kwargs):
+    if lang not in TRANSLATIONS:
+        lang = "en"
+    translation = TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
+    if kwargs:
+        return translation.format(**kwargs)
+    return translation
+
+def save_launcher_language_to_registry(language):
+    try:
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        key_path = r'Software\MountAndBladeWarbandKeys'
+        
+        try:
+            key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_WRITE)
+        except FileNotFoundError:
+            key = winreg.CreateKey(reg, key_path)
+        
+        winreg.SetValueEx(key, "launcher_language", 0, winreg.REG_SZ, language)
+        winreg.CloseKey(key)
+        return True
+    except Exception:
+        return False
+
+def load_launcher_language_from_registry():
+    try:
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        key_path = r'Software\MountAndBladeWarbandKeys'
+        
+        key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_READ)
+        language, _ = winreg.QueryValueEx(key, "launcher_language")
+        winreg.CloseKey(key)
+        if language in LAUNCHER_LANGUAGES:
+            return language
+        return "en"
+    except (FileNotFoundError, OSError):
+        return "en"
+    except Exception:
+        return "en"
+
 def normalize_path(path):
     return os.path.normpath(os.path.normcase(path))
 
@@ -111,7 +386,7 @@ def find_all_warband_paths(path_to_exe=None):
     return found_paths
 
 
-def find_warband_path(path_to_exe=None):
+def find_warband_path(path_to_exe=None, lang="en"):
     found_paths = find_all_warband_paths(path_to_exe)
     
     if not found_paths:
@@ -125,7 +400,7 @@ def find_warband_path(path_to_exe=None):
         install_dir = os.path.dirname(path)
         path_display.append(f"{install_dir}")
     
-    selected_index = select_from_menu("Multiple Warband installations found. Select which one to use:", path_display)
+    selected_index = select_from_menu(t("multiple_installations", lang), path_display, lang=lang)
     
     if selected_index == -1:
         return "", False
@@ -194,7 +469,7 @@ def get_languages_list(install_directory, module_name):
     return languages
 
 
-def select_from_menu(title, options, prefix=""):
+def select_from_menu(title, options, prefix="", lang="en"):
     selected_index = 0
     
     while True:
@@ -228,12 +503,12 @@ def select_from_menu(title, options, prefix=""):
             selected_index = min(len(options) - 1, selected_index + 1)
 
 
-def select_module(modules):
+def select_module(modules, lang="en"):
     if not modules:
-        print("No modules found")
+        print(t("no_modules_found", lang))
         return None
     
-    selected_index = select_from_menu("Select module (use UP/DOWN arrows, ENTER to confirm)", modules)
+    selected_index = select_from_menu(t("select_module", lang), modules, lang=lang)
     
     if selected_index == -1:
         return None
@@ -363,14 +638,14 @@ def get_language_name(lang_code):
     return language_names.get(lang_code, lang_code.upper())
 
 
-def show_warning(message):
+def show_warning(message, lang="en"):
     os.system('cls' if os.name == 'nt' else 'clear')
     print(message)
-    print("\nPress ENTER to continue...")
+    print(f"\n{t('press_enter', lang)}")
     msvcrt.getch()
 
 
-def select_language(install_directory, module_name):
+def select_language(install_directory, module_name, launcher_lang="en"):
     languages = get_languages_list(install_directory, module_name)
     language_names = []
     
@@ -378,7 +653,7 @@ def select_language(install_directory, module_name):
         lang_name = get_language_name(lang_code)
         language_names.append(f"{lang_name} ({lang_code})")
     
-    selected_index = select_from_menu("Select language (use UP/DOWN arrows, ENTER to confirm)", language_names)
+    selected_index = select_from_menu(t("select_language", launcher_lang), language_names, lang=launcher_lang)
     
     if selected_index == -1:
         return None
@@ -387,37 +662,51 @@ def select_language(install_directory, module_name):
     
     if not check_language_in_root(install_directory, selected_language):
         lang_name = get_language_name(selected_language)
-        warning_message = f"""WARNING
+        warning_message = f"""{t("warning", launcher_lang)}
 
-The selected language "{lang_name} ({selected_language})" is not available in the root Languages folder.
-
-Some interface elements may not be translated and will remain in English."""
-        show_warning(warning_message)
+{t("language_warning", lang=launcher_lang, selected_lang=f"{lang_name} ({selected_language})")}"""
+        show_warning(warning_message, launcher_lang)
     
     save_language_to_registry(selected_language)
     save_language_to_file(selected_language)
     return selected_language
 
 
-def launch_game(install_directory, module_name):
+def select_launcher_language(launcher_lang="en"):
+    language_names = []
+    for lang_code in LAUNCHER_LANGUAGES:
+        lang_name = get_launcher_language_name(lang_code)
+        language_names.append(f"{lang_name} ({lang_code})")
+    
+    selected_index = select_from_menu(t("select_launcher_language", launcher_lang), language_names, lang=launcher_lang)
+    
+    if selected_index == -1:
+        return None
+    
+    selected_language = LAUNCHER_LANGUAGES[selected_index]
+    save_launcher_language_to_registry(selected_language)
+    return selected_language
+
+
+def launch_game(install_directory, module_name, lang="en"):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     launcher_exe = os.path.join(script_dir, "Launcher.exe")
     
     if not os.path.exists(launcher_exe):
-        print(f"Error: Launcher.exe not found at {launcher_exe}")
-        input("Press ENTER to continue...")
+        print(f"{t('error', lang)}: Launcher.exe not found at {launcher_exe}")
+        input(f"{t('press_enter', lang)}")
         return False
     
     try:
         subprocess.run([launcher_exe, module_name], cwd=install_directory, check=True)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"Error launching game: {e}")
-        input("Press ENTER to continue...")
+        print(f"{t('error_launching', lang)}: {e}")
+        input(f"{t('press_enter', lang)}")
         return False
     except Exception as e:
-        print(f"Error: {e}")
-        input("Press ENTER to continue...")
+        print(f"{t('error', lang)}: {e}")
+        input(f"{t('press_enter', lang)}")
         return False
 
 
@@ -433,58 +722,81 @@ def print_warband_art():
     return art
 
 
-def main_menu(install_directory, modules, module_name, current_language="en"):
+def settings_menu(install_directory, modules, module_name, current_language, launcher_lang="en"):
     art = print_warband_art()
     while True:
-        options = ["Play", "Select Module", "Settings", "Exit"]
-        selected = select_from_menu(f"Module: {module_name} | Language: {current_language}", options, art)
+        options = [t("game_language", launcher_lang), t("launcher_language", launcher_lang), t("back", launcher_lang)]
+        selected = select_from_menu(t("settings", launcher_lang), options, art, lang=launcher_lang)
+        
+        if selected == -1:
+            return launcher_lang
+        
+        if selected == 0:
+            new_language = select_language(install_directory, module_name, launcher_lang)
+            if new_language:
+                current_language = new_language
+        elif selected == 1:
+            new_launcher_lang = select_launcher_language(launcher_lang)
+            if new_launcher_lang:
+                launcher_lang = new_launcher_lang
+        elif selected == 2:
+            return launcher_lang
+
+
+def main_menu(install_directory, modules, module_name, current_language="en", launcher_lang="en"):
+    art = print_warband_art()
+    while True:
+        options = [t("play", launcher_lang), t("select_module", launcher_lang), t("settings", launcher_lang), t("exit", launcher_lang)]
+        selected = select_from_menu(f"{t('module', launcher_lang)}: {module_name} | {t('language', launcher_lang)}: {current_language}", options, art, lang=launcher_lang)
         
         if selected == -1:
             continue
         
         if selected == 0:
-            if launch_game(install_directory, module_name):
+            if launch_game(install_directory, module_name, launcher_lang):
                 sys.exit(0)
         elif selected == 1:
-            new_module = select_module(modules)
+            new_module = select_module(modules, launcher_lang)
             if new_module and new_module != module_name:
                 module_name = new_module
                 save_module_to_file(module_name)
                 save_language_to_file("en")
                 current_language = "en"
         elif selected == 2:
-            new_language = select_language(install_directory, module_name)
-            if new_language:
-                current_language = new_language
+            new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
+            if new_launcher_lang and new_launcher_lang != launcher_lang:
+                launcher_lang = new_launcher_lang
         elif selected == 3:
             return
 
 
 if __name__ == "__main__":
-    warband_path, success = find_warband_path()
+    launcher_lang = load_launcher_language_from_registry()
+    
+    warband_path, success = find_warband_path(lang=launcher_lang)
     if success:
-        print(f"Found Warband: {warband_path}")
+        print(f"{t('found_warband', launcher_lang)}: {warband_path}")
     else:
-        print("Warband not found")
-        input("Press ENTER to continue...")
+        print(t("warband_not_found", launcher_lang))
+        input(f"{t('press_enter', launcher_lang)}")
         exit()
 
     install_directory = get_install_directory(warband_path)
     modules = get_modules_list(install_directory)
     
     if not modules:
-        print("No modules found")
-        input("Press ENTER to continue...")
+        print(t("no_modules_found", launcher_lang))
+        input(f"{t('press_enter', launcher_lang)}")
         exit()
     
     saved_module = load_module_from_file()
     selected_module = saved_module if saved_module and saved_module in modules else None
     
     if not selected_module:
-        selected_module = select_module(modules)
+        selected_module = select_module(modules, launcher_lang)
         if not selected_module:
-            print("\nNo module selected")
-            input("Press ENTER to continue...")
+            print(f"\n{t('no_module_selected', launcher_lang)}")
+            input(f"{t('press_enter', launcher_lang)}")
             exit()
         save_module_to_file(selected_module)
         save_language_to_file("en")
@@ -492,4 +804,4 @@ if __name__ == "__main__":
     else:
         saved_language = load_language_from_file()
     
-    main_menu(install_directory, modules, selected_module, saved_language)
+    main_menu(install_directory, modules, selected_module, saved_language, launcher_lang)
