@@ -311,33 +311,56 @@ def load_module_from_file():
         return None
 
 
+def get_language_name(lang_code):
+    language_names = {
+        "en": "English",
+        "cns": "Chinese Simplified",
+        "cnt": "Chinese Traditional",
+        "cz": "Czech",
+        "de": "German",
+        "es": "Spanish",
+        "fr": "French",
+        "hu": "Hungarian",
+        "pl": "Polish",
+        "tr": "Turkish",
+        "ru": "Russian",
+        "uk": "Ukrainian",
+        "it": "Italian",
+        "pt": "Portuguese",
+        "pt_br": "Portuguese (Brazil)",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "ar": "Arabic",
+        "nl": "Dutch",
+        "sv": "Swedish",
+        "no": "Norwegian",
+        "da": "Danish",
+        "fi": "Finnish",
+        "ro": "Romanian",
+        "bg": "Bulgarian",
+        "sr": "Serbian",
+        "hr": "Croatian",
+        "sk": "Slovak",
+        "sl": "Slovenian",
+        "el": "Greek",
+        "he": "Hebrew",
+        "th": "Thai",
+        "vi": "Vietnamese",
+        "id": "Indonesian",
+        "ms": "Malay",
+        "hi": "Hindi",
+    }
+    
+    return language_names.get(lang_code, lang_code.upper())
+
+
 def select_language(install_directory, module_name):
     languages = get_languages_list(install_directory, module_name)
     language_names = []
     
     for lang_code in languages:
-        if lang_code == "en":
-            language_names.append("English (en)")
-        elif lang_code == "cns":
-            language_names.append("Chinese Simplified (cns)")
-        elif lang_code == "cnt":
-            language_names.append("Chinese Traditional (cnt)")
-        elif lang_code == "cz":
-            language_names.append("Czech (cz)")
-        elif lang_code == "de":
-            language_names.append("German (de)")
-        elif lang_code == "es":
-            language_names.append("Spanish (es)")
-        elif lang_code == "fr":
-            language_names.append("French (fr)")
-        elif lang_code == "hu":
-            language_names.append("Hungarian (hu)")
-        elif lang_code == "pl":
-            language_names.append("Polish (pl)")
-        elif lang_code == "tr":
-            language_names.append("Turkish (tr)")
-        else:
-            language_names.append(f"{lang_code}")
+        lang_name = get_language_name(lang_code)
+        language_names.append(f"{lang_name} ({lang_code})")
     
     selected_index = select_from_menu("Select language (use UP/DOWN arrows, ENTER to confirm)", language_names)
     
