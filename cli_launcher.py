@@ -81,9 +81,39 @@ def find_warband_path(path_to_exe=None):
     return "", False
 
 
+def get_install_directory(warband_exe_path):
+    return os.path.dirname(warband_exe_path)
+
+
+def get_modules_list(install_directory=None):
+    if install_directory is None:
+        warband_path, success = find_warband_path()
+        if not success:
+            return []
+        install_directory = get_install_directory(warband_path)
+    
+    modules_path = os.path.join(install_directory, "Modules")
+    if not os.path.exists(modules_path):
+        return []
+    
+    modules = []
+    try:
+        for item in os.listdir(modules_path):
+            item_path = os.path.join(modules_path, item)
+            if os.path.isdir(item_path):
+                modules.append(item)
+    except Exception as e:
+        print(f"Error reading modules directory: {e}")
+    
+    return modules
+
+
 if __name__ == "__main__":
     warband_path, success = find_warband_path()
     if success:
         print(f"Found Warband: {warband_path}")
     else:
         print("Warband not found")
+        exit()
+
+    modules = get_modules_list(get_install_directory(warband_path))
