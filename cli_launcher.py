@@ -892,8 +892,6 @@ def select_toggle_option(title, options_with_keys, prefix="", lang="en"):
                 print(f"{COLOR_ACCENT}{BOLD}  ▶ {checkbox} {option_text} ◀{COLOR_RESET}")
             else:
                 print(f"    {checkbox} {option_text}")
-        print()
-        print(f"{t('press_enter', lang)}")
         
         key = msvcrt.getch()
         
@@ -1005,8 +1003,6 @@ def game_settings_menu(launcher_lang="en"):
                 print(f"{COLOR_ACCENT}{BOLD}  ▶ {t('back', launcher_lang)} ◀{COLOR_RESET}")
             else:
                 print(f"    {t('back', launcher_lang)}")
-            print()
-            print(f"{t('press_enter', launcher_lang)}")
             
             key = msvcrt.getch()
             
@@ -1051,8 +1047,6 @@ def select_from_list(title, options, current_index=0, prefix="", lang="en"):
                 print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
             else:
                 print(f"    {option}")
-        print()
-        print(f"{t('press_enter', lang)}")
         
         key = msvcrt.getch()
         
@@ -1087,7 +1081,7 @@ def select_number(title, min_val, max_val, current_val, prefix="", lang="en"):
         print(f"    {COLOR_ACCENT}{BOLD}Value: {value}{COLOR_RESET}")
         print()
         print("Use UP/DOWN arrows or +/- to change value")
-        print(f"{t('press_enter', lang)}")
+        print(f"{t('press_enter', launcher_lang)}")
         print(f"{t('back', lang)} (ESC)")
         
         key = msvcrt.getch()
@@ -1205,8 +1199,6 @@ def video_settings_menu(launcher_lang="en"):
                     print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
                 else:
                     print(f"    {option}")
-            print()
-            print(f"{t('press_enter', launcher_lang)}")
             
             key = msvcrt.getch()
             
@@ -1357,8 +1349,6 @@ def audio_settings_menu(launcher_lang="en"):
                     print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
                 else:
                     print(f"    {option}")
-            print()
-            print(f"{t('press_enter', launcher_lang)}")
             
             key = msvcrt.getch()
             
@@ -1428,8 +1418,6 @@ def advanced_settings_menu(launcher_lang="en"):
                     print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
                 else:
                     print(f"    {option}")
-            print()
-            print(f"{t('press_enter', launcher_lang)}")
             
             key = msvcrt.getch()
             
