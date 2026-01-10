@@ -10,7 +10,7 @@ if os.name == 'nt':
     kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
 COLOR_RESET = '\033[0m'
-COLOR_ACCENT = '\033[38;5;2m'
+COLOR_ACCENT = '\033[38;2;255;165;0m'
 
 TRANSLATIONS = {
     "en": {
