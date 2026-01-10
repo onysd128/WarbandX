@@ -431,6 +431,12 @@ def find_all_warband_paths(path_to_exe=None):
 
 
 def find_warband_path(path_to_exe=None, lang="en"):
+    current_working_dir = os.getcwd()
+    warband_exe_in_current = os.path.join(current_working_dir, "mb_warband.exe")
+    
+    if os.path.exists(warband_exe_in_current):
+        return warband_exe_in_current, True
+    
     found_paths = find_all_warband_paths(path_to_exe)
     
     if not found_paths:
