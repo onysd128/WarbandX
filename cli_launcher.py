@@ -28,6 +28,10 @@ TRANSLATIONS = {
         "back": "Back",
         "game_language": "Game Language",
         "launcher_language": "Launcher Language",
+        "game_settings": "Game Settings",
+        "video_settings": "Video Settings",
+        "audio_settings": "Audio Settings",
+        "advanced_settings": "Advanced Settings",
         "module": "Module",
         "language": "Language",
         "press_enter": "Press ENTER to continue...",
@@ -52,6 +56,10 @@ TRANSLATIONS = {
         "back": "Назад",
         "game_language": "Мова гри",
         "launcher_language": "Мова лаунчера",
+        "game_settings": "Налаштування гри",
+        "video_settings": "Відео налаштування",
+        "audio_settings": "Аудіо налаштування",
+        "advanced_settings": "Розширені налаштування",
         "module": "Модуль",
         "language": "Мова",
         "press_enter": "Натисніть ENTER для продовження...",
@@ -76,6 +84,10 @@ TRANSLATIONS = {
         "back": "Назад",
         "game_language": "Мова гульні",
         "launcher_language": "Мова лаўнчара",
+        "game_settings": "Налады гульні",
+        "video_settings": "Відэа налады",
+        "audio_settings": "Аўдыё налады",
+        "advanced_settings": "Пашыраныя налады",
         "module": "Модуль",
         "language": "Мова",
         "press_enter": "Націсніце ENTER для працягу...",
@@ -100,6 +112,10 @@ TRANSLATIONS = {
         "back": "Înapoi",
         "game_language": "Limba jocului",
         "launcher_language": "Limba launcher-ului",
+        "game_settings": "Setări Joc",
+        "video_settings": "Setări Video",
+        "audio_settings": "Setări Audio",
+        "advanced_settings": "Setări Avansate",
         "module": "Modul",
         "language": "Limbă",
         "press_enter": "Apăsați ENTER pentru a continua...",
@@ -124,6 +140,10 @@ TRANSLATIONS = {
         "back": "Wstecz",
         "game_language": "Język gry",
         "launcher_language": "Język launchera",
+        "game_settings": "Ustawienia Gry",
+        "video_settings": "Ustawienia Wideo",
+        "audio_settings": "Ustawienia Audio",
+        "advanced_settings": "Ustawienia Zaawansowane",
         "module": "Moduł",
         "language": "Język",
         "press_enter": "Naciśnij ENTER aby kontynuować...",
@@ -148,6 +168,10 @@ TRANSLATIONS = {
         "back": "Geri",
         "game_language": "Oyun Dili",
         "launcher_language": "Launcher Dili",
+        "game_settings": "Oyun Ayarları",
+        "video_settings": "Video Ayarları",
+        "audio_settings": "Ses Ayarları",
+        "advanced_settings": "Gelişmiş Ayarlar",
         "module": "Modül",
         "language": "Dil",
         "press_enter": "Devam etmek için ENTER'a basın...",
@@ -172,6 +196,10 @@ TRANSLATIONS = {
         "back": "戻る",
         "game_language": "ゲーム言語",
         "launcher_language": "ランチャー言語",
+        "game_settings": "ゲーム設定",
+        "video_settings": "ビデオ設定",
+        "audio_settings": "オーディオ設定",
+        "advanced_settings": "詳細設定",
         "module": "モジュール",
         "language": "言語",
         "press_enter": "続行するにはENTERキーを押してください...",
@@ -196,6 +224,10 @@ TRANSLATIONS = {
         "back": "返回",
         "game_language": "游戏语言",
         "launcher_language": "启动器语言",
+        "game_settings": "游戏设置",
+        "video_settings": "视频设置",
+        "audio_settings": "音频设置",
+        "advanced_settings": "高级设置",
         "module": "模块",
         "language": "语言",
         "press_enter": "按ENTER继续...",
@@ -220,6 +252,10 @@ TRANSLATIONS = {
         "back": "뒤로",
         "game_language": "게임 언어",
         "launcher_language": "런처 언어",
+        "game_settings": "게임 설정",
+        "video_settings": "비디오 설정",
+        "audio_settings": "오디오 설정",
+        "advanced_settings": "고급 설정",
         "module": "모듈",
         "language": "언어",
         "press_enter": "계속하려면 ENTER를 누르세요...",
@@ -747,10 +783,159 @@ def print_warband_art():
     return colored_art
 
 
+def get_rgl_config_path():
+    user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
+    return os.path.join(user_profile, "Documents", "Mount&Blade Warband", "rgl_config.txt")
+
+
+def read_rgl_config():
+    config = {}
+    config_path = get_rgl_config_path()
+    
+    if not os.path.exists(config_path):
+        return config
+    
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip()
+                    try:
+                        if "." in value:
+                            config[key] = float(value)
+                        else:
+                            config[key] = int(value)
+                    except ValueError:
+                        config[key] = value
+    except Exception:
+        pass
+    
+    return config
+
+
+def write_rgl_config(config):
+    config_path = get_rgl_config_path()
+    config_dir = os.path.dirname(config_path)
+    os.makedirs(config_dir, exist_ok=True)
+    
+    try:
+        existing_config = read_rgl_config()
+        existing_config.update(config)
+        
+        if os.path.exists(config_path):
+            lines = []
+            with open(config_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    stripped = line.strip()
+                    if not stripped or stripped.startswith("#"):
+                        lines.append((line.rstrip("\n\r"), None))
+                    elif "=" in stripped:
+                        key = stripped.split("=", 1)[0].strip()
+                        if key in existing_config:
+                            value = existing_config[key]
+                            if isinstance(value, float):
+                                lines.append((None, f"{key} = {value}"))
+                            else:
+                                lines.append((None, f"{key} = {value}"))
+                        else:
+                            lines.append((line.rstrip("\n\r"), None))
+                    else:
+                        lines.append((line.rstrip("\n\r"), None))
+            
+            with open(config_path, "w", encoding="utf-8") as f:
+                for original, new_line in lines:
+                    if new_line:
+                        f.write(new_line + "\n")
+                    else:
+                        f.write(original + "\n")
+        else:
+            with open(config_path, "w", encoding="utf-8") as f:
+                for key, value in existing_config.items():
+                    if isinstance(value, float):
+                        f.write(f"{key} = {value}\n")
+                    else:
+                        f.write(f"{key} = {value}\n")
+        return True
+    except Exception:
+        return False
+
+
+def select_toggle_option(title, options_with_keys, prefix="", lang="en"):
+    selected_index = 0
+    BOLD = '\033[1m'
+    global COLOR_RESET
+    global COLOR_ACCENT
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        if prefix:
+            print(prefix)
+            print()
+        print(f"{BOLD}{title}{COLOR_RESET}\n")
+        
+        for i, (option_text, config_key) in enumerate(options_with_keys):
+            current_value = get_config_value(config_key, 0)
+            checkbox = "[✓]" if current_value == 1 else "[ ]"
+            
+            if i == selected_index:
+                print(f"{COLOR_ACCENT}{BOLD}  ▶ {checkbox} {option_text} ◀{COLOR_RESET}")
+            else:
+                print(f"    {checkbox} {option_text}")
+        print()
+        print(f"{t('press_enter', lang)}")
+        
+        key = msvcrt.getch()
+        
+        if key == b'\xe0' or key == b'\x00':
+            key2 = msvcrt.getch()
+            if key2 == b'H':
+                selected_index = max(0, selected_index - 1)
+            elif key2 == b'P':
+                selected_index = min(len(options_with_keys) - 1, selected_index + 1)
+        elif key == b'\r' or key == b'\n':
+            config_key = options_with_keys[selected_index][1]
+            toggle_config_value(config_key)
+        elif key == b'\x1b':
+            return
+        elif key == b'w' or key == b'W':
+            selected_index = max(0, selected_index - 1)
+        elif key == b's' or key == b'S':
+            selected_index = min(len(options_with_keys) - 1, selected_index + 1)
+
+
+def get_config_value(key, default=0):
+    config = read_rgl_config()
+    return config.get(key, default)
+
+
+def set_config_value(key, value):
+    return write_rgl_config({key: value})
+
+
+def toggle_config_value(key, default=0):
+    current = get_config_value(key, default)
+    new_value = 1 if current == 0 else 0
+    set_config_value(key, new_value)
+    return new_value
+
+
 def settings_menu(install_directory, modules, module_name, current_language, launcher_lang="en"):
     art = print_warband_art()
     while True:
-        options = [t("game_language", launcher_lang), t("launcher_language", launcher_lang), t("back", launcher_lang)]
+        options = [
+            t("game_language", launcher_lang),
+            t("launcher_language", launcher_lang),
+            t("game_settings", launcher_lang),
+            t("video_settings", launcher_lang),
+            t("audio_settings", launcher_lang),
+            t("advanced_settings", launcher_lang),
+            t("back", launcher_lang)
+        ]
         selected = select_from_menu(t("settings", launcher_lang), options, art, lang=launcher_lang)
         
         if selected == -1:
@@ -765,7 +950,502 @@ def settings_menu(install_directory, modules, module_name, current_language, lau
             if new_launcher_lang:
                 launcher_lang = new_launcher_lang
         elif selected == 2:
+            game_settings_menu(launcher_lang)
+        elif selected == 3:
+            video_settings_menu(launcher_lang)
+        elif selected == 4:
+            audio_settings_menu(launcher_lang)
+        elif selected == 5:
+            advanced_settings_menu(launcher_lang)
+        elif selected == 6:
             return current_language, launcher_lang
+
+
+def game_settings_menu(launcher_lang="en"):
+    art = print_warband_art()
+    options_with_keys = [
+        ("Hide Blood", "enable_blood"),
+        ("Enable Cheats", "cheat_mode")
+    ]
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(art)
+        print()
+        BOLD = '\033[1m'
+        global COLOR_RESET
+        global COLOR_ACCENT
+        print(f"{BOLD}{t('game_settings', launcher_lang)}{COLOR_RESET}\n")
+        
+        selected_index = 0
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(art)
+            print()
+            print(f"{BOLD}{t('game_settings', launcher_lang)}{COLOR_RESET}\n")
+            
+            for i, (option_text, config_key) in enumerate(options_with_keys):
+                current_value = get_config_value(config_key, 0)
+                if config_key == "enable_blood":
+                    current_value = 0 if current_value == 1 else 1
+                checkbox = "[✓]" if current_value == 1 else "[ ]"
+                
+                if i == selected_index:
+                    print(f"{COLOR_ACCENT}{BOLD}  ▶ {checkbox} {option_text} ◀{COLOR_RESET}")
+                else:
+                    print(f"    {checkbox} {option_text}")
+            
+            if len(options_with_keys) == selected_index:
+                print(f"{COLOR_ACCENT}{BOLD}  ▶ {t('back', launcher_lang)} ◀{COLOR_RESET}")
+            else:
+                print(f"    {t('back', launcher_lang)}")
+            print()
+            print(f"{t('press_enter', launcher_lang)}")
+            
+            key = msvcrt.getch()
+            
+            if key == b'\xe0' or key == b'\x00':
+                key2 = msvcrt.getch()
+                if key2 == b'H':
+                    selected_index = max(0, selected_index - 1)
+                elif key2 == b'P':
+                    selected_index = min(len(options_with_keys), selected_index + 1)
+            elif key == b'\r' or key == b'\n':
+                if selected_index == len(options_with_keys):
+                    return
+                config_key = options_with_keys[selected_index][1]
+                if config_key == "enable_blood":
+                    current = get_config_value(config_key, 1)
+                    set_config_value(config_key, 0 if current == 1 else 1)
+                else:
+                    toggle_config_value(config_key)
+            elif key == b'\x1b':
+                return
+            elif key == b'w' or key == b'W':
+                selected_index = max(0, selected_index - 1)
+            elif key == b's' or key == b'S':
+                selected_index = min(len(options_with_keys), selected_index + 1)
+
+
+def select_from_list(title, options, current_index=0, prefix="", lang="en"):
+    selected_index = current_index
+    BOLD = '\033[1m'
+    global COLOR_RESET
+    global COLOR_ACCENT
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        if prefix:
+            print(prefix)
+            print()
+        print(f"{BOLD}{title}{COLOR_RESET}\n")
+        
+        for i, option in enumerate(options):
+            if i == selected_index:
+                print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
+            else:
+                print(f"    {option}")
+        print()
+        print(f"{t('press_enter', lang)}")
+        
+        key = msvcrt.getch()
+        
+        if key == b'\xe0' or key == b'\x00':
+            key2 = msvcrt.getch()
+            if key2 == b'H':
+                selected_index = max(0, selected_index - 1)
+            elif key2 == b'P':
+                selected_index = min(len(options) - 1, selected_index + 1)
+        elif key == b'\r' or key == b'\n':
+            return selected_index
+        elif key == b'\x1b':
+            return -1
+        elif key == b'w' or key == b'W':
+            selected_index = max(0, selected_index - 1)
+        elif key == b's' or key == b'S':
+            selected_index = min(len(options) - 1, selected_index + 1)
+
+
+def select_number(title, min_val, max_val, current_val, prefix="", lang="en"):
+    value = current_val
+    BOLD = '\033[1m'
+    global COLOR_RESET
+    global COLOR_ACCENT
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        if prefix:
+            print(prefix)
+            print()
+        print(f"{BOLD}{title}{COLOR_RESET}\n")
+        print(f"    {COLOR_ACCENT}{BOLD}Value: {value}{COLOR_RESET}")
+        print()
+        print("Use UP/DOWN arrows or +/- to change value")
+        print(f"{t('press_enter', lang)}")
+        print(f"{t('back', lang)} (ESC)")
+        
+        key = msvcrt.getch()
+        
+        if key == b'\xe0' or key == b'\x00':
+            key2 = msvcrt.getch()
+            if key2 == b'H':
+                value = min(max_val, value + 1)
+            elif key2 == b'P':
+                value = max(min_val, value - 1)
+        elif key == b'+' or key == b'=':
+            value = min(max_val, value + 1)
+        elif key == b'-' or key == b'_':
+            value = max(min_val, value - 1)
+        elif key == b'\r' or key == b'\n':
+            return value
+        elif key == b'\x1b':
+            return None
+        elif key == b'w' or key == b'W':
+            value = min(max_val, value + 1)
+        elif key == b's' or key == b'S':
+            value = max(min_val, value - 1)
+
+
+def video_settings_menu(launcher_lang="en"):
+    art = print_warband_art()
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(art)
+        print()
+        BOLD = '\033[1m'
+        global COLOR_RESET
+        global COLOR_ACCENT
+        
+        use_pixel_shaders = get_config_value("use_pixel_shaders", 1)
+        start_windowed = get_config_value("start_windowed", 0)
+        show_framerate = get_config_value("show_framerate", 1)
+        force_vsync = get_config_value("force_vsync", 1)
+        use_ondemand_textures = get_config_value("use_ondemand_textures_", 0)
+        texture_detail = get_config_value("texture_detail", 100)
+        max_framerate = get_config_value("max_framerate", 100)
+        
+        display_width = get_config_value("display_width", 0)
+        display_height = get_config_value("display_height", 0)
+        resolution_text = "Use Desktop Resolution" if display_width == 0 and display_height == 0 else f"{display_width}x{display_height}"
+        
+        antialiasing = get_config_value("antialiasing", 0)
+        antialiasing_options = ["Off", "2x", "4x", "8x"]
+        antialiasing_text = antialiasing_options[min(antialiasing, len(antialiasing_options) - 1)] if antialiasing < len(antialiasing_options) else "Off"
+        
+        shadowmap_quality = get_config_value("shadowmap_quality", 1)
+        shadow_options = ["Low", "Medium", "High"]
+        shadow_text = shadow_options[min(shadowmap_quality, len(shadow_options) - 1)] if shadowmap_quality < len(shadow_options) else "High"
+        
+        options = [
+            f"{'[✓]' if use_pixel_shaders == 1 else '[ ]'} Use Pixel Shaders",
+            f"{'[✓]' if start_windowed == 1 else '[ ]'} Start Windowed",
+            f"{'[✓]' if show_framerate == 1 else '[ ]'} Show Framerate",
+            f"{'[✓]' if force_vsync == 1 else '[ ]'} Force Vertical Sync",
+            f"{'[✓]' if use_ondemand_textures == 1 else '[ ]'} Load Textures On Demand",
+            f"Texture Detail: {texture_detail}",
+            f"Max Frame Rate: {max_framerate}",
+            f"Screen Resolution: {resolution_text}",
+            f"Antialiasing: {antialiasing_text}",
+            f"Shadow Quality: {shadow_text}",
+            t("back", launcher_lang)
+        ]
+        
+        print(f"{BOLD}{t('video_settings', launcher_lang)}{COLOR_RESET}\n")
+        
+        selected_index = 0
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(art)
+            print()
+            print(f"{BOLD}{t('video_settings', launcher_lang)}{COLOR_RESET}\n")
+            
+            use_pixel_shaders = get_config_value("use_pixel_shaders", 1)
+            start_windowed = get_config_value("start_windowed", 0)
+            show_framerate = get_config_value("show_framerate", 1)
+            force_vsync = get_config_value("force_vsync", 1)
+            use_ondemand_textures = get_config_value("use_ondemand_textures_", 0)
+            texture_detail = get_config_value("texture_detail", 100)
+            max_framerate = get_config_value("max_framerate", 100)
+            
+            display_width = get_config_value("display_width", 0)
+            display_height = get_config_value("display_height", 0)
+            resolution_text = "Use Desktop Resolution" if display_width == 0 and display_height == 0 else f"{display_width}x{display_height}"
+            
+            antialiasing = get_config_value("antialiasing", 0)
+            antialiasing_options = ["Off", "2x", "4x", "8x"]
+            antialiasing_text = antialiasing_options[min(antialiasing, len(antialiasing_options) - 1)] if antialiasing < len(antialiasing_options) else "Off"
+            
+            shadowmap_quality = get_config_value("shadowmap_quality", 1)
+            shadow_options = ["Low", "Medium", "High"]
+            shadow_text = shadow_options[min(shadowmap_quality, len(shadow_options) - 1)] if shadowmap_quality < len(shadow_options) else "High"
+            
+            options = [
+                f"{'[✓]' if use_pixel_shaders == 1 else '[ ]'} Use Pixel Shaders",
+                f"{'[✓]' if start_windowed == 1 else '[ ]'} Start Windowed",
+                f"{'[✓]' if show_framerate == 1 else '[ ]'} Show Framerate",
+                f"{'[✓]' if force_vsync == 1 else '[ ]'} Force Vertical Sync",
+                f"{'[✓]' if use_ondemand_textures == 1 else '[ ]'} Load Textures On Demand",
+                f"Texture Detail: {texture_detail}",
+                f"Max Frame Rate: {max_framerate}",
+                f"Screen Resolution: {resolution_text}",
+                f"Antialiasing: {antialiasing_text}",
+                f"Shadow Quality: {shadow_text}",
+                t("back", launcher_lang)
+            ]
+            
+            for i, option in enumerate(options):
+                if i == selected_index:
+                    print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
+                else:
+                    print(f"    {option}")
+            print()
+            print(f"{t('press_enter', launcher_lang)}")
+            
+            key = msvcrt.getch()
+            
+            if key == b'\xe0' or key == b'\x00':
+                key2 = msvcrt.getch()
+                if key2 == b'H':
+                    selected_index = max(0, selected_index - 1)
+                elif key2 == b'P':
+                    selected_index = min(len(options) - 1, selected_index + 1)
+            elif key == b'\r' or key == b'\n':
+                if selected_index == len(options) - 1:
+                    return
+                elif selected_index == 0:
+                    toggle_config_value("use_pixel_shaders", 1)
+                elif selected_index == 1:
+                    toggle_config_value("start_windowed", 0)
+                elif selected_index == 2:
+                    toggle_config_value("show_framerate", 1)
+                elif selected_index == 3:
+                    toggle_config_value("force_vsync", 1)
+                elif selected_index == 4:
+                    toggle_config_value("use_ondemand_textures_", 0)
+                elif selected_index == 5:
+                    new_value = select_number("Texture Detail", 10, 100, texture_detail, art, launcher_lang)
+                    if new_value is not None:
+                        set_config_value("texture_detail", new_value)
+                elif selected_index == 6:
+                    new_value = select_number("Max Frame Rate", 30, 200, max_framerate, art, launcher_lang)
+                    if new_value is not None:
+                        set_config_value("max_framerate", new_value)
+                elif selected_index == 7:
+                    resolutions = [
+                        "Use Desktop Resolution",
+                        "640x480 32 bits",
+                        "800x600 32 bits",
+                        "1024x768 32 bits",
+                        "1280x720 32 bits",
+                        "1280x1024 32 bits",
+                        "1366x768 32 bits",
+                        "1920x1080 32 bits"
+                    ]
+                    current_res_index = 0
+                    if display_width == 640 and display_height == 480:
+                        current_res_index = 1
+                    elif display_width == 800 and display_height == 600:
+                        current_res_index = 2
+                    elif display_width == 1024 and display_height == 768:
+                        current_res_index = 3
+                    elif display_width == 1280 and display_height == 720:
+                        current_res_index = 4
+                    elif display_width == 1280 and display_height == 1024:
+                        current_res_index = 5
+                    elif display_width == 1366 and display_height == 768:
+                        current_res_index = 6
+                    elif display_width == 1920 and display_height == 1080:
+                        current_res_index = 7
+                    
+                    selected_res = select_from_list("Screen Resolution", resolutions, current_res_index, art, launcher_lang)
+                    if selected_res >= 0:
+                        if selected_res == 0:
+                            set_config_value("display_width", 0)
+                            set_config_value("display_height", 0)
+                        elif selected_res == 1:
+                            set_config_value("display_width", 640)
+                            set_config_value("display_height", 480)
+                        elif selected_res == 2:
+                            set_config_value("display_width", 800)
+                            set_config_value("display_height", 600)
+                        elif selected_res == 3:
+                            set_config_value("display_width", 1024)
+                            set_config_value("display_height", 768)
+                        elif selected_res == 4:
+                            set_config_value("display_width", 1280)
+                            set_config_value("display_height", 720)
+                        elif selected_res == 5:
+                            set_config_value("display_width", 1280)
+                            set_config_value("display_height", 1024)
+                        elif selected_res == 6:
+                            set_config_value("display_width", 1366)
+                            set_config_value("display_height", 768)
+                        elif selected_res == 7:
+                            set_config_value("display_width", 1920)
+                            set_config_value("display_height", 1080)
+                elif selected_index == 8:
+                    current_aa = get_config_value("antialiasing", 0)
+                    aa_options = ["Off", "2x", "4x", "8x"]
+                    selected_aa = select_from_list("Antialiasing", aa_options, min(current_aa, len(aa_options) - 1), art, launcher_lang)
+                    if selected_aa >= 0:
+                        set_config_value("antialiasing", selected_aa)
+                elif selected_index == 9:
+                    current_shadow = get_config_value("shadowmap_quality", 1)
+                    shadow_options = ["Low", "Medium", "High"]
+                    selected_shadow = select_from_list("Shadow Quality", shadow_options, min(current_shadow, len(shadow_options) - 1), art, launcher_lang)
+                    if selected_shadow >= 0:
+                        set_config_value("shadowmap_quality", selected_shadow)
+            elif key == b'\x1b':
+                return
+            elif key == b'w' or key == b'W':
+                selected_index = max(0, selected_index - 1)
+            elif key == b's' or key == b'S':
+                selected_index = min(len(options) - 1, selected_index + 1)
+
+
+def audio_settings_menu(launcher_lang="en"):
+    art = print_warband_art()
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(art)
+        print()
+        BOLD = '\033[1m'
+        global COLOR_RESET
+        global COLOR_ACCENT
+        
+        disable_frequency_variation = get_config_value("disable_frequency_variation", 0)
+        disable_sound = get_config_value("disable_sound", 0)
+        disable_music = get_config_value("disable_music", 0)
+        
+        options = [
+            f"{'[✓]' if disable_frequency_variation == 0 else '[ ]'} Enable Sound Variation",
+            f"{'[✓]' if disable_sound == 0 else '[ ]'} Enable Sound",
+            f"{'[✓]' if disable_music == 0 else '[ ]'} Enable Music",
+            t("back", launcher_lang)
+        ]
+        
+        print(f"{BOLD}{t('audio_settings', launcher_lang)}{COLOR_RESET}\n")
+        
+        selected_index = 0
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(art)
+            print()
+            print(f"{BOLD}{t('audio_settings', launcher_lang)}{COLOR_RESET}\n")
+            
+            disable_frequency_variation = get_config_value("disable_frequency_variation", 0)
+            disable_sound = get_config_value("disable_sound", 0)
+            disable_music = get_config_value("disable_music", 0)
+            
+            options = [
+                f"{'[✓]' if disable_frequency_variation == 0 else '[ ]'} Enable Sound Variation",
+                f"{'[✓]' if disable_sound == 0 else '[ ]'} Enable Sound",
+                f"{'[✓]' if disable_music == 0 else '[ ]'} Enable Music",
+                t("back", launcher_lang)
+            ]
+            
+            for i, option in enumerate(options):
+                if i == selected_index:
+                    print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
+                else:
+                    print(f"    {option}")
+            print()
+            print(f"{t('press_enter', launcher_lang)}")
+            
+            key = msvcrt.getch()
+            
+            if key == b'\xe0' or key == b'\x00':
+                key2 = msvcrt.getch()
+                if key2 == b'H':
+                    selected_index = max(0, selected_index - 1)
+                elif key2 == b'P':
+                    selected_index = min(len(options) - 1, selected_index + 1)
+            elif key == b'\r' or key == b'\n':
+                if selected_index == 0:
+                    toggle_config_value("disable_frequency_variation", 0)
+                elif selected_index == 1:
+                    toggle_config_value("disable_sound", 0)
+                elif selected_index == 2:
+                    toggle_config_value("disable_music", 0)
+                elif selected_index == 3:
+                    return
+            elif key == b'\x1b':
+                return
+            elif key == b'w' or key == b'W':
+                selected_index = max(0, selected_index - 1)
+            elif key == b's' or key == b'S':
+                selected_index = min(len(options) - 1, selected_index + 1)
+
+
+def advanced_settings_menu(launcher_lang="en"):
+    art = print_warband_art()
+    
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(art)
+        print()
+        BOLD = '\033[1m'
+        global COLOR_RESET
+        global COLOR_ACCENT
+        
+        enable_edit_mode = get_config_value("enable_edit_mode", 0)
+        force_single_threading = get_config_value("force_single_threading", 0)
+        
+        options = [
+            f"{'[✓]' if enable_edit_mode == 1 else '[ ]'} Enable Edit Mode (Be warned, this slows down the game.)",
+            f"{'[✓]' if force_single_threading == 1 else '[ ]'} Force Single Threading",
+            t("back", launcher_lang)
+        ]
+        
+        print(f"{BOLD}{t('advanced_settings', launcher_lang)}{COLOR_RESET}\n")
+        
+        selected_index = 0
+        while True:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(art)
+            print()
+            print(f"{BOLD}{t('advanced_settings', launcher_lang)}{COLOR_RESET}\n")
+            
+            enable_edit_mode = get_config_value("enable_edit_mode", 0)
+            force_single_threading = get_config_value("force_single_threading", 0)
+            
+            options = [
+                f"{'[✓]' if enable_edit_mode == 1 else '[ ]'} Enable Edit Mode (Be warned, this slows down the game.)",
+                f"{'[✓]' if force_single_threading == 1 else '[ ]'} Force Single Threading",
+                t("back", launcher_lang)
+            ]
+            
+            for i, option in enumerate(options):
+                if i == selected_index:
+                    print(f"{COLOR_ACCENT}{BOLD}  ▶ {option} ◀{COLOR_RESET}")
+                else:
+                    print(f"    {option}")
+            print()
+            print(f"{t('press_enter', launcher_lang)}")
+            
+            key = msvcrt.getch()
+            
+            if key == b'\xe0' or key == b'\x00':
+                key2 = msvcrt.getch()
+                if key2 == b'H':
+                    selected_index = max(0, selected_index - 1)
+                elif key2 == b'P':
+                    selected_index = min(len(options) - 1, selected_index + 1)
+            elif key == b'\r' or key == b'\n':
+                if selected_index == 0:
+                    toggle_config_value("enable_edit_mode", 0)
+                elif selected_index == 1:
+                    toggle_config_value("force_single_threading", 0)
+                elif selected_index == 2:
+                    return
+            elif key == b'\x1b':
+                return
+            elif key == b'w' or key == b'W':
+                selected_index = max(0, selected_index - 1)
+            elif key == b's' or key == b'S':
+                selected_index = min(len(options) - 1, selected_index + 1)
 
 
 def main_menu(install_directory, modules, module_name, current_language="en", launcher_lang="en"):
