@@ -633,6 +633,23 @@ def load_language_from_file():
         return "en"
 
 
+def save_module_to_registry(module_name):
+    try:
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
+        key_path = r'Software\MountAndBladeWarbandKeys'
+        
+        try:
+            key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_WRITE)
+        except FileNotFoundError:
+            key = winreg.CreateKey(reg, key_path)
+        
+        winreg.SetValueEx(key, "last_module_warband", 0, winreg.REG_SZ, module_name)
+        winreg.CloseKey(key)
+        return True
+    except Exception as e:
+        print(f"Error saving module to registry: {e}")
+        return False
+
 def save_module_to_file(module_name):
     try:
         user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
@@ -786,22 +803,148 @@ def show_steam_warning(lang="en"):
     print()
     input(f"{t('press_enter', lang)}")
 
+def push_play_button():
+    """Find the launcher dialog and click the Play button"""
+    user32 = ctypes.windll.user32
+    
+    WM_LBUTTONDOWN = 0x0201
+    WM_LBUTTONUP = 0x0202
+    MK_LBUTTON = 0x0001
+    IDC_PLAY_BUTTON = 1029
+    
+    FindWindowW = user32.FindWindowW
+    FindWindowW.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p]
+    FindWindowW.restype = ctypes.c_void_p
+    
+    GetDlgItem = user32.GetDlgItem
+    GetDlgItem.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    GetDlgItem.restype = ctypes.c_void_p
+    
+    SendMessageW = user32.SendMessageW
+    SendMessageW.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
+    SendMessageW.restype = ctypes.c_void_p
+    
+    h_dialog = None
+    while h_dialog is None or h_dialog == 0:
+        h_dialog = FindWindowW("#32770", "Mount&Blade Warband")
+        if h_dialog is None or h_dialog == 0:
+            import time
+            time.sleep(0.1)
+    
+    h_play_button = None
+    while h_play_button is None or h_play_button == 0:
+        h_play_button = GetDlgItem(h_dialog, IDC_PLAY_BUTTON)
+        if h_play_button is None or h_play_button == 0:
+            import time
+            time.sleep(0.1)
+    
+    SendMessageW(h_play_button, WM_LBUTTONDOWN, MK_LBUTTON, 0)
+    SendMessageW(h_play_button, WM_LBUTTONUP, MK_LBUTTON, 0)
+
 def launch_game(install_directory, module_name, lang="en"):
     if is_steam_version(install_directory):
         if not is_steam_running():
             show_steam_warning(lang)
             return False
     
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    launcher_exe = os.path.join(script_dir, "Launcher.exe")
+    warband_exe = os.path.join(install_directory, "mb_warband.exe")
     
-    if not os.path.exists(launcher_exe):
-        print(f"{t('error', lang)}: Launcher.exe not found at {launcher_exe}")
+    if not os.path.exists(warband_exe):
+        print(f"{t('error', lang)}: mb_warband.exe not found at {warband_exe}")
         input(f"{t('press_enter', lang)}")
         return False
     
     try:
-        subprocess.Popen([launcher_exe, module_name], cwd=install_directory)
+        kernel32 = ctypes.windll.kernel32
+        user32 = ctypes.windll.user32
+        
+        HIGH_PRIORITY_CLASS = 0x00000080
+        INFINITE = 0xFFFFFFFF
+        
+        class STARTUPINFO(ctypes.Structure):
+            _fields_ = [
+                ("cb", ctypes.c_uint),
+                ("lpReserved", ctypes.c_wchar_p),
+                ("lpDesktop", ctypes.c_wchar_p),
+                ("lpTitle", ctypes.c_wchar_p),
+                ("dwX", ctypes.c_uint),
+                ("dwY", ctypes.c_uint),
+                ("dwXSize", ctypes.c_uint),
+                ("dwYSize", ctypes.c_uint),
+                ("dwXCountChars", ctypes.c_uint),
+                ("dwYCountChars", ctypes.c_uint),
+                ("dwFillAttribute", ctypes.c_uint),
+                ("dwFlags", ctypes.c_uint),
+                ("wShowWindow", ctypes.c_ushort),
+                ("cbReserved2", ctypes.c_ushort),
+                ("lpReserved2", ctypes.c_void_p),
+                ("hStdInput", ctypes.c_void_p),
+                ("hStdOutput", ctypes.c_void_p),
+                ("hStdError", ctypes.c_void_p),
+            ]
+        
+        class PROCESS_INFORMATION(ctypes.Structure):
+            _fields_ = [
+                ("hProcess", ctypes.c_void_p),
+                ("hThread", ctypes.c_void_p),
+                ("dwProcessId", ctypes.c_uint),
+                ("dwThreadId", ctypes.c_uint),
+            ]
+        
+        CreateProcessW = kernel32.CreateProcessW
+        CreateProcessW.argtypes = [
+            ctypes.c_wchar_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_bool,
+            ctypes.c_uint,
+            ctypes.c_void_p,
+            ctypes.c_wchar_p,
+            ctypes.POINTER(STARTUPINFO),
+            ctypes.POINTER(PROCESS_INFORMATION)
+        ]
+        CreateProcessW.restype = ctypes.c_bool
+        
+        WaitForInputIdle = user32.WaitForInputIdle
+        WaitForInputIdle.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+        WaitForInputIdle.restype = ctypes.c_uint
+        
+        si = STARTUPINFO()
+        si.cb = ctypes.sizeof(STARTUPINFO)
+        pi = PROCESS_INFORMATION()
+        
+        warband_path = os.path.abspath(warband_exe)
+        
+        if not CreateProcessW(
+            warband_path,
+            None,
+            None,
+            None,
+            False,
+            HIGH_PRIORITY_CLASS,
+            None,
+            install_directory,
+            ctypes.byref(si),
+            ctypes.byref(pi)
+        ):
+            error_code = kernel32.GetLastError()
+            print(f"{t('error_launching', lang)}: CreateProcess failed with error {error_code}")
+            input(f"{t('press_enter', lang)}")
+            return False
+        
+        WaitForInputIdle(pi.hProcess, INFINITE)
+        
+        save_module_to_registry(module_name)
+        
+        import time
+        time.sleep(0.5)
+        
+        push_play_button()
+        
+        import time
+        time.sleep(1.0)
+        
         return True
     except Exception as e:
         print(f"{t('error_launching', lang)}: {e}")
