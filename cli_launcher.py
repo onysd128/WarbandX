@@ -758,14 +758,10 @@ def launch_game(install_directory, module_name, lang="en"):
         return False
     
     try:
-        subprocess.run([launcher_exe, module_name], cwd=install_directory, check=True)
+        subprocess.Popen([launcher_exe, module_name], cwd=install_directory)
         return True
-    except subprocess.CalledProcessError as e:
-        print(f"{t('error_launching', lang)}: {e}")
-        input(f"{t('press_enter', lang)}")
-        return False
     except Exception as e:
-        print(f"{t('error', lang)}: {e}")
+        print(f"{t('error_launching', lang)}: {e}")
         input(f"{t('press_enter', lang)}")
         return False
 
