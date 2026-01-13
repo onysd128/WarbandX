@@ -40,6 +40,7 @@ TRANSLATIONS = {
         "warning": "WARNING",
         "language_warning": "The selected language \"{selected_lang}\" is not available in the root Languages folder.\n\nSome interface elements may not be translated and will remain in English.",
         "found_warband": "Found Warband",
+        "steam_not_running": "Steam is not running.\n\nPlease start Steam and log in to your account before launching the game.",
     },
     "uk": {
         "warband_not_found": "Warband не знайдено",
@@ -68,6 +69,7 @@ TRANSLATIONS = {
         "warning": "ПОПЕРЕДЖЕННЯ",
         "language_warning": "Обрана мова \"{selected_lang}\" недоступна в кореневій папці Languages.\n\nДеякі елементи інтерфейсу можуть не бути перекладені і залишаться англійською.",
         "found_warband": "Знайдено Warband",
+        "steam_not_running": "Steam не запущений.\n\nБудь ласка, запустіть Steam та увійдіть у свій профіль перед запуском гри.",
     },
     "be": {
         "warband_not_found": "Warband не знойдзена",
@@ -96,6 +98,7 @@ TRANSLATIONS = {
         "warning": "ПАПЯРЭДЖАННЕ",
         "language_warning": "Абраная мова \"{selected_lang}\" недаступная ў каранёвай папцы Languages.\n\nНекаторыя элементы інтэрфейсу могуць не быць перакладзены і застануцца англійскай.",
         "found_warband": "Знойдзена Warband",
+        "steam_not_running": "Steam не запушчаны.\n\nКалі ласка, запусціце Steam і ўвайдзіце ў свой профіль перад запускам гульні.",
     },
     "ro": {
         "warband_not_found": "Warband nu a fost găsit",
@@ -124,6 +127,7 @@ TRANSLATIONS = {
         "warning": "AVERTISMENT",
         "language_warning": "Limba selectată \"{selected_lang}\" nu este disponibilă în folderul rădăcină Languages.\n\nUnele elemente ale interfeței pot să nu fie traduse și vor rămâne în engleză.",
         "found_warband": "Warband găsit",
+        "steam_not_running": "Steam nu rulează.\n\nVă rugăm să porniți Steam și să vă conectați la contul dvs. înainte de a lansa jocul.",
     },
     "pl": {
         "warband_not_found": "Nie znaleziono Warband",
@@ -152,6 +156,7 @@ TRANSLATIONS = {
         "warning": "OSTRZEŻENIE",
         "language_warning": "Wybrany język \"{selected_lang}\" nie jest dostępny w głównym folderze Languages.\n\nNiektóre elementy interfejsu mogą nie być przetłumaczone i pozostaną w języku angielskim.",
         "found_warband": "Znaleziono Warband",
+        "steam_not_running": "Steam nie jest uruchomiony.\n\nProszę uruchomić Steam i zalogować się na swoje konto przed uruchomieniem gry.",
     },
     "tr": {
         "warband_not_found": "Warband bulunamadı",
@@ -180,6 +185,7 @@ TRANSLATIONS = {
         "warning": "UYARI",
         "language_warning": "Seçilen dil \"{selected_lang}\" kök Languages klasöründe mevcut değil.\n\nBazı arayüz öğeleri çevrilmemiş olabilir ve İngilizce kalacaktır.",
         "found_warband": "Warband bulundu",
+        "steam_not_running": "Steam çalışmıyor.\n\nLütfen oyunu başlatmadan önce Steam'i başlatın ve hesabınıza giriş yapın.",
     },
     "ja": {
         "warband_not_found": "Warbandが見つかりません",
@@ -208,6 +214,7 @@ TRANSLATIONS = {
         "warning": "警告",
         "language_warning": "選択された言語「{selected_lang}」はルートLanguagesフォルダーで利用できません。\n\n一部のインターフェース要素は翻訳されず、英語のままになる可能性があります。",
         "found_warband": "Warbandが見つかりました",
+        "steam_not_running": "Steamが実行されていません。\n\nゲームを起動する前に、Steamを起動してアカウントにログインしてください。",
     },
     "zh": {
         "warband_not_found": "未找到Warband",
@@ -236,6 +243,7 @@ TRANSLATIONS = {
         "warning": "警告",
         "language_warning": "所选语言「{selected_lang}」在根Languages文件夹中不可用。\n\n某些界面元素可能未翻译，将保持英语。",
         "found_warband": "找到Warband",
+        "steam_not_running": "Steam未运行。\n\n请在启动游戏之前启动Steam并登录您的账户。",
     },
     "ko": {
         "warband_not_found": "Warband를 찾을 수 없습니다",
@@ -264,6 +272,7 @@ TRANSLATIONS = {
         "warning": "경고",
         "language_warning": "선택한 언어 \"{selected_lang}\"는 루트 Languages 폴더에서 사용할 수 없습니다.\n\n일부 인터페이스 요소는 번역되지 않을 수 있으며 영어로 유지됩니다.",
         "found_warband": "Warband를 찾았습니다",
+        "steam_not_running": "Steam이 실행되고 있지 않습니다.\n\n게임을 시작하기 전에 Steam을 시작하고 계정에 로그인하세요.",
     },
 }
 
@@ -748,7 +757,41 @@ def select_launcher_language(launcher_lang="en"):
     return selected_language
 
 
+def is_steam_version(install_directory):
+    normalized_path = install_directory.lower()
+    return "steamapps" in normalized_path or "steam" in normalized_path
+
+def is_steam_running():
+    if os.name != 'nt':
+        return True
+    try:
+        result = subprocess.run(['tasklist'], 
+                              capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+        output_lower = result.stdout.lower()
+        return 'steam.exe' in output_lower
+    except Exception:
+        return False
+
+def show_steam_warning(lang="en"):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    art = print_warband_art()
+    print(art)
+    print()
+    global COLOR_RESET
+    global COLOR_ACCENT
+    BOLD = '\033[1m'
+    print(f"{COLOR_ACCENT}{BOLD}{t('warning', lang)}{COLOR_RESET}")
+    print()
+    print(t('steam_not_running', lang))
+    print()
+    input(f"{t('press_enter', lang)}")
+
 def launch_game(install_directory, module_name, lang="en"):
+    if is_steam_version(install_directory):
+        if not is_steam_running():
+            show_steam_warning(lang)
+            return False
+    
     script_dir = os.path.dirname(os.path.abspath(__file__))
     launcher_exe = os.path.join(script_dir, "Launcher.exe")
     
