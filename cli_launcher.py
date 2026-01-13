@@ -914,6 +914,9 @@ def launch_game(install_directory, module_name, lang="en"):
         si.cb = ctypes.sizeof(STARTUPINFO)
         pi = PROCESS_INFORMATION()
         
+        save_module_to_registry(module_name)
+        save_module_to_file(module_name)
+        
         warband_path = os.path.abspath(warband_exe)
         
         if not CreateProcessW(
@@ -934,8 +937,6 @@ def launch_game(install_directory, module_name, lang="en"):
             return False
         
         WaitForInputIdle(pi.hProcess, INFINITE)
-        
-        save_module_to_registry(module_name)
         
         import time
         time.sleep(0.5)
