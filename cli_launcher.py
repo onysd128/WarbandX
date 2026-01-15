@@ -22,6 +22,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Select launcher language (use UP/DOWN arrows, ENTER to confirm)",
         "multiple_installations": "Multiple Warband installations found. Select which one to use:",
         "play": "Play",
+        "play_wse2": "Play (WSE2)",
         "select_module": "Select Module",
         "settings": "Settings",
         "exit": "Exit",
@@ -51,6 +52,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Оберіть мову лаунчера (використовуйте стрілки ВГОРУ/ВНИЗ, ENTER для підтвердження)",
         "multiple_installations": "Знайдено кілька встановлень Warband. Оберіть яке використовувати:",
         "play": "Грати",
+        "play_wse2": "Грати (WSE2)",
         "select_module": "Обрати модуль",
         "settings": "Налаштування",
         "exit": "Вихід",
@@ -80,6 +82,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Абярыце мову лаўнчара (выкарыстоўвайце стрэлкі УГОРУ/УНИЗ, ENTER для пацверджання)",
         "multiple_installations": "Знойдзена некалькі ўстановак Warband. Абярыце якую выкарыстоўваць:",
         "play": "Гуляць",
+        "play_wse2": "Гуляць (WSE2)",
         "select_module": "Абраць модуль",
         "settings": "Налады",
         "exit": "Выхад",
@@ -109,6 +112,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Selectați limba launcher-ului (folosiți săgețile SUS/JOS, ENTER pentru confirmare)",
         "multiple_installations": "Au fost găsite mai multe instalări Warband. Selectați care să fie folosită:",
         "play": "Joacă",
+        "play_wse2": "Joacă (WSE2)",
         "select_module": "Selectează Modul",
         "settings": "Setări",
         "exit": "Ieșire",
@@ -138,6 +142,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Wybierz język launchera (użyj strzałek GÓRA/DÓŁ, ENTER aby potwierdzić)",
         "multiple_installations": "Znaleziono wiele instalacji Warband. Wybierz którą użyć:",
         "play": "Graj",
+        "play_wse2": "Graj (WSE2)",
         "select_module": "Wybierz Moduł",
         "settings": "Ustawienia",
         "exit": "Wyjście",
@@ -167,6 +172,7 @@ TRANSLATIONS = {
         "select_launcher_language": "Launcher dilini seçin (YUKARI/AŞAĞI ok tuşlarını kullanın, onaylamak için ENTER)",
         "multiple_installations": "Birden fazla Warband kurulumu bulundu. Hangisini kullanacağınızı seçin:",
         "play": "Oyna",
+        "play_wse2": "Oyna (WSE2)",
         "select_module": "Modül Seç",
         "settings": "Ayarlar",
         "exit": "Çıkış",
@@ -196,6 +202,7 @@ TRANSLATIONS = {
         "select_launcher_language": "ランチャーの言語を選択してください（上下矢印キーを使用、ENTERで確認）",
         "multiple_installations": "複数のWarbandインストールが見つかりました。使用するものを選択してください：",
         "play": "プレイ",
+        "play_wse2": "プレイ (WSE2)",
         "select_module": "モジュールを選択",
         "settings": "設定",
         "exit": "終了",
@@ -225,6 +232,7 @@ TRANSLATIONS = {
         "select_launcher_language": "选择启动器语言（使用上下箭头键，ENTER确认）",
         "multiple_installations": "找到多个Warband安装。选择要使用的：",
         "play": "游戏",
+        "play_wse2": "游戏 (WSE2)",
         "select_module": "选择模块",
         "settings": "设置",
         "exit": "退出",
@@ -254,6 +262,7 @@ TRANSLATIONS = {
         "select_launcher_language": "런처 언어를 선택하세요 (위/아래 화살표 사용, ENTER로 확인)",
         "multiple_installations": "여러 개의 Warband 설치를 찾았습니다. 사용할 것을 선택하세요:",
         "play": "플레이",
+        "play_wse2": "플레이 (WSE2)",
         "select_module": "모듈 선택",
         "settings": "설정",
         "exit": "종료",
@@ -840,6 +849,28 @@ def push_play_button():
     
     SendMessageW(h_play_button, WM_LBUTTONDOWN, MK_LBUTTON, 0)
     SendMessageW(h_play_button, WM_LBUTTONUP, MK_LBUTTON, 0)
+
+def launch_wse2(install_directory, module_name, lang="en"):
+    """Launch mb_warband_wse2.exe with module parameter"""
+    wse2_exe = os.path.join(install_directory, "mb_warband_wse2.exe")
+    
+    if not os.path.exists(wse2_exe):
+        print(f"{t('error', lang)}: mb_warband_wse2.exe not found at {wse2_exe}")
+        input(f"{t('press_enter', lang)}")
+        return False
+    
+    try:
+        # Use cmd.exe /c start to launch WSE2 with module parameter
+        # Module name is passed without quotes, preserving spaces
+        subprocess.Popen(
+            ["cmd.exe", "/c", "start", "mb_warband_wse2.exe", "--module", module_name, "--no-intro"],
+            cwd=install_directory
+        )
+        return True
+    except Exception as e:
+        print(f"{t('error_launching', lang)}: {e}")
+        input(f"{t('press_enter', lang)}")
+        return False
 
 def launch_game(install_directory, module_name, lang="en"):
     if is_steam_version(install_directory):
@@ -1627,8 +1658,14 @@ def advanced_settings_menu(launcher_lang="en"):
 
 def main_menu(install_directory, modules, module_name, current_language="en", launcher_lang="en"):
     art = print_warband_art()
+    wse2_exists = os.path.exists(os.path.join(install_directory, "mb_warband_wse2.exe"))
+    
     while True:
-        options = [t("play", launcher_lang), t("select_module", launcher_lang), t("settings", launcher_lang), t("exit", launcher_lang)]
+        options = [t("play", launcher_lang)]
+        if wse2_exists:
+            options.append(t("play_wse2", launcher_lang))
+        options.extend([t("select_module", launcher_lang), t("settings", launcher_lang), t("exit", launcher_lang)])
+        
         selected = select_from_menu(f"{t('module', launcher_lang)}: {module_name} | {t('language', launcher_lang)}: {current_language}", options, art, lang=launcher_lang)
         
         if selected == -1:
@@ -1638,18 +1675,38 @@ def main_menu(install_directory, modules, module_name, current_language="en", la
             if launch_game(install_directory, module_name, launcher_lang):
                 sys.exit(0)
         elif selected == 1:
-            new_module = select_module(modules, launcher_lang)
-            if new_module and new_module != module_name:
-                module_name = new_module
-                save_module_to_file(module_name)
-                save_language_to_file("en")
-                current_language = "en"
+            if wse2_exists:
+                if launch_wse2(install_directory, module_name, launcher_lang):
+                    sys.exit(0)
+            else:
+                new_module = select_module(modules, launcher_lang)
+                if new_module and new_module != module_name:
+                    module_name = new_module
+                    save_module_to_file(module_name)
+                    save_language_to_file("en")
+                    current_language = "en"
         elif selected == 2:
-            new_language, new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
-            current_language = new_language
-            if new_launcher_lang != launcher_lang:
-                launcher_lang = new_launcher_lang
+            if wse2_exists:
+                new_module = select_module(modules, launcher_lang)
+                if new_module and new_module != module_name:
+                    module_name = new_module
+                    save_module_to_file(module_name)
+                    save_language_to_file("en")
+                    current_language = "en"
+            else:
+                new_language, new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
+                current_language = new_language
+                if new_launcher_lang != launcher_lang:
+                    launcher_lang = new_launcher_lang
         elif selected == 3:
+            if wse2_exists:
+                new_language, new_launcher_lang = settings_menu(install_directory, modules, module_name, current_language, launcher_lang)
+                current_language = new_language
+                if new_launcher_lang != launcher_lang:
+                    launcher_lang = new_launcher_lang
+            else:
+                return
+        elif selected == 4:
             return
 
 
