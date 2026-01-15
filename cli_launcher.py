@@ -603,6 +603,7 @@ def select_module(modules, lang="en"):
 
 
 def save_language_to_file(language):
+    """Save language to Documents folder (for regular game)"""
     try:
         user_profile = os.environ.get("USERPROFILE", os.path.expanduser("~"))
         warband_dir = os.path.join(user_profile, "Documents", "Mount&Blade Warband")
@@ -615,6 +616,22 @@ def save_language_to_file(language):
         return True
     except Exception as e:
         print(f"Error saving language to file: {e}")
+        return False
+
+def save_language_to_appdata(language):
+    """Save language to AppData folder (for WSE2 launcher)"""
+    try:
+        appdata = os.environ.get("APPDATA", os.path.join(os.environ.get("USERPROFILE", os.path.expanduser("~")), "AppData", "Roaming"))
+        wse2_dir = os.path.join(appdata, "Mount&Blade Warband WSE2")
+        
+        os.makedirs(wse2_dir, exist_ok=True)
+        
+        language_file = os.path.join(wse2_dir, "language.txt")
+        with open(language_file, "w", encoding="utf-8") as f:
+            f.write(language)
+        return True
+    except Exception as e:
+        print(f"Error saving language to AppData: {e}")
         return False
 
 
@@ -869,11 +886,18 @@ def launch_wse2(install_directory, module_name, lang="en"):
         return False
     
     try:
+        # Save language before launching (same as regular launch)
+        # WSE2 launcher reads from AppData, while regular game reads from Documents
+        # Save to both locations to ensure compatibility
+        save_language_to_registry(lang)
+        save_language_to_file(lang)  # For regular game
+        save_language_to_appdata(lang)  # For WSE2 launcher (reads from %APPDATA%\Mount&Blade Warband WSE2\language.txt)
+        
         # Use cmd.exe /c start to launch WSE2 with module parameter
         # Module name is passed without quotes, preserving spaces
-        # Pass the entire command as a string to ensure proper argument handling
+        # WSE2 reads language from AppData folder, so we don't need --language parameter
         command = f'start mb_warband_wse2.exe --module {module_name} --no-intro'
-        # print(f"{t('launching', lang)}: {command}")
+        
         subprocess.Popen(
             command,
             shell=True,
@@ -1689,7 +1713,7 @@ def main_menu(install_directory, modules, module_name, current_language="en", la
                 sys.exit(0)
         elif selected == 1:
             if wse2_exists:
-                if launch_wse2(install_directory, module_name, launcher_lang):
+                if launch_wse2(install_directory, module_name, current_language):
                     sys.exit(0)
             else:
                 new_module = select_module(modules, launcher_lang)
