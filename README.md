@@ -11,6 +11,8 @@ A modern, open-source command-line launcher for **Mount & Blade: Warband** with 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
 
+### 📥 [Download Latest Release](https://github.com/onysd128/WarbandX/releases/latest)
+
 ## ✨ Features
 
 ### 🌍 Native Language Support
