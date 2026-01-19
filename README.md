@@ -76,6 +76,7 @@ Or use `auto-py-to-exe` for a GUI-based build process.
 ### Basic Usage
 
 1. Launch `warbandx.exe` or run `python cli_launcher.py`
+   - **Tip**: You can place `warbandx.exe` directly in your Warband installation folder (where `mb_warband.exe` is located). The launcher will automatically detect and use that installation, skipping the selection step.
 2. If multiple Warband installations are found, select the desired one
 3. Choose your module from the list
 4. Select your preferred game language
