@@ -1,5 +1,10 @@
 # 🎮 WarbandX
 
+<div align="center">
+   <img src="readme-images/icon.png" alt="WarbandX Icon" width="275">
+   <img src="readme-images/screenshot.png" alt="WarbandX Screenshot" width="600">
+</div>
+
 A modern, open-source command-line launcher for **Mount & Blade: Warband** with comprehensive multi-language support and WSE2 integration.
 
 ![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
